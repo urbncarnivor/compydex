@@ -7,6 +7,24 @@ const searchInput = document.getElementById("searchInput");
 const searchStatus = document.getElementById("searchStatus");
 const searchResults = document.getElementById("searchResults");
 
+const cardDetailPanel = document.getElementById("cardDetailPanel");
+const closeDetailButton = document.getElementById("closeDetailButton");
+
+const selectedCardImage = document.getElementById("selectedCardImage");
+const selectedCardName = document.getElementById("selectedCardName");
+const selectedCardSet = document.getElementById("selectedCardSet");
+const selectedCardNumber = document.getElementById("selectedCardNumber");
+const selectedCardRarity = document.getElementById("selectedCardRarity");
+
+const conditionSelect = document.getElementById("conditionSelect");
+const marketPrice = document.getElementById("marketPrice");
+const conditionPrice = document.getElementById("conditionPrice");
+const finalCompInput = document.getElementById("finalCompInput");
+const percentageInput = document.getElementById("percentageInput");
+const offerAmount = document.getElementById("offerAmount");
+
+let selectedCardMarketPrice = 0;
+
 searchButton.addEventListener("click", () => {
   searchPanel.classList.toggle("hidden");
 
@@ -17,6 +35,10 @@ searchButton.addEventListener("click", () => {
 
 scanButton.addEventListener("click", () => {
   alert("Camera scanner is next.");
+});
+
+closeDetailButton.addEventListener("click", () => {
+  cardDetailPanel.classList.add("hidden");
 });
 
 searchForm.addEventListener("submit", async (event) => {
@@ -39,7 +61,9 @@ searchForm.addEventListener("submit", async (event) => {
       return;
     }
 
-    searchStatus.textContent = `${cards.length} cards found`;
+    searchStatus.textContent =
+      `${cards.length} card${cards.length === 1 ? "" : "s"} found`;
+
     displayCards(cards);
   } catch (error) {
     console.error(error);
@@ -47,6 +71,25 @@ searchForm.addEventListener("submit", async (event) => {
     searchStatus.textContent =
       "Search failed. Please check your connection and try again.";
   }
+});
+
+conditionSelect.addEventListener("change", () => {
+  updateConditionValue();
+});
+
+finalCompInput.addEventListener("input", () => {
+  updateOfferAmount();
+});
+
+percentageInput.addEventListener("input", () => {
+  updateOfferAmount();
+});
+
+document.querySelectorAll("[data-percentage]").forEach((button) => {
+  button.addEventListener("click", () => {
+    percentageInput.value = button.dataset.percentage;
+    updateOfferAmount();
+  });
 });
 
 async function searchCards(query) {
@@ -101,17 +144,39 @@ async function searchCards(query) {
     cards = cards
       .filter((card) => String(card.number) === exactNumber)
       .sort((a, b) => {
+        const searchedName = nameWords.join(" ").toLowerCase();
+
         const aExact =
-          a.name.toLowerCase() === nameWords.join(" ").toLowerCase();
+          a.name.toLowerCase() === searchedName;
 
         const bExact =
-          b.name.toLowerCase() === nameWords.join(" ").toLowerCase();
+          b.name.toLowerCase() === searchedName;
 
         return Number(bExact) - Number(aExact);
       });
   }
 
   return cards.slice(0, 20);
+}
+
+function getCardMarketPrice(card) {
+  const prices = card.tcgplayer?.prices;
+
+  if (!prices) {
+    return 0;
+  }
+
+  const availablePrices = [
+    prices.holofoil?.market,
+    prices.reverseHolofoil?.market,
+    prices.normal?.market,
+    prices.firstEditionHolofoil?.market,
+    prices.firstEditionNormal?.market,
+    prices.unlimitedHolofoil?.market,
+    prices.unlimitedNormal?.market
+  ].filter((price) => typeof price === "number");
+
+  return availablePrices[0] || 0;
 }
 
 function displayCards(cards) {
@@ -121,11 +186,7 @@ function displayCards(cards) {
     const cardElement = document.createElement("article");
     cardElement.className = "card-result";
 
-    const price =
-      card.tcgplayer?.prices?.holofoil?.market ??
-      card.tcgplayer?.prices?.reverseHolofoil?.market ??
-      card.tcgplayer?.prices?.normal?.market ??
-      null;
+    const price = getCardMarketPrice(card);
 
     cardElement.innerHTML = `
       <img
@@ -138,18 +199,94 @@ function displayCards(cards) {
         <h3>${card.name}</h3>
         <p>${card.set.name}</p>
         <p>Card ${card.number}/${card.set.printedTotal}</p>
+
         <p class="card-price">
-          ${price !== null
-            ? `Market: $${price.toFixed(2)}`
-            : "Market price unavailable"}
+          ${
+            price > 0
+              ? `Market: ${formatMoney(price)}`
+              : "Market price unavailable"
+          }
         </p>
       </div>
     `;
 
     cardElement.addEventListener("click", () => {
-      console.log("Selected card:", card);
+      openCardDetail(card);
     });
 
     searchResults.appendChild(cardElement);
   });
+}
+
+function openCardDetail(card) {
+  selectedCardMarketPrice = getCardMarketPrice(card);
+
+  selectedCardImage.src =
+    card.images.large || card.images.small;
+
+  selectedCardImage.alt = card.name;
+  selectedCardName.textContent = card.name;
+  selectedCardSet.textContent = card.set.name;
+
+  selectedCardNumber.textContent =
+    `Card ${card.number}/${card.set.printedTotal}`;
+
+  selectedCardRarity.textContent =
+    `Rarity: ${card.rarity || "Unknown"}`;
+
+  marketPrice.textContent =
+    selectedCardMarketPrice > 0
+      ? formatMoney(selectedCardMarketPrice)
+      : "Unavailable";
+
+  conditionSelect.value = "1";
+
+  finalCompInput.value =
+    selectedCardMarketPrice.toFixed(2);
+
+  updateConditionValue();
+
+  cardDetailPanel.classList.remove("hidden");
+
+  cardDetailPanel.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+function updateConditionValue() {
+  const conditionMultiplier =
+    Number(conditionSelect.value) || 1;
+
+  const adjustedPrice =
+    selectedCardMarketPrice * conditionMultiplier;
+
+  conditionPrice.textContent =
+    formatMoney(adjustedPrice);
+
+  finalCompInput.value =
+    adjustedPrice.toFixed(2);
+
+  updateOfferAmount();
+}
+
+function updateOfferAmount() {
+  const comp =
+    Number(finalCompInput.value) || 0;
+
+  const percentage =
+    Number(percentageInput.value) || 0;
+
+  const offer =
+    comp * (percentage / 100);
+
+  offerAmount.textContent =
+    formatMoney(offer);
+}
+
+function formatMoney(value) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD"
+  }).format(value);
 }
