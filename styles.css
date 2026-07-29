@@ -192,3 +192,167 @@ footer {
   color: #a78bfa;
   font-weight: 700;
 }
+.card-detail-panel {
+  margin-top: 30px;
+  padding: 20px;
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 16px;
+}
+
+.close-detail-button {
+  width: auto;
+  margin: 0 0 18px auto;
+  padding: 9px 13px;
+  display: block;
+  background: #374151;
+  color: #d1d5db;
+  border-radius: 9px;
+  font-size: 14px;
+}
+
+.selected-card-header {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.selected-card-header img {
+  width: 120px;
+  height: auto;
+  border-radius: 9px;
+}
+
+.selected-card-header h2 {
+  margin-bottom: 8px;
+  font-size: 23px;
+}
+
+.selected-card-header p {
+  margin-bottom: 6px;
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+.detail-field {
+  margin-top: 22px;
+}
+
+.detail-field label {
+  display: block;
+  margin-bottom: 9px;
+  color: #d1d5db;
+  font-weight: 700;
+}
+
+.detail-field select,
+.detail-field input {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid #4b5563;
+  border-radius: 10px;
+  background: #111827;
+  color: white;
+  font-size: 17px;
+}
+
+.detail-field select:focus,
+.detail-field input:focus {
+  outline: 2px solid #7c3aed;
+  border-color: transparent;
+}
+
+.price-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.price-box {
+  padding: 15px;
+  background: #111827;
+  border-radius: 11px;
+}
+
+.price-box span {
+  display: block;
+  margin-bottom: 7px;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.price-box strong {
+  color: #a78bfa;
+  font-size: 20px;
+}
+
+.money-input,
+.percentage-input {
+  display: flex;
+  align-items: center;
+  border: 1px solid #4b5563;
+  border-radius: 10px;
+  background: #111827;
+}
+
+.money-input span,
+.percentage-input span {
+  padding: 0 14px;
+  color: #9ca3af;
+  font-size: 18px;
+}
+
+.money-input input,
+.percentage-input input {
+  border: none;
+  background: transparent;
+}
+
+.quick-percentages {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.quick-percentages button {
+  margin: 0;
+  padding: 11px 4px;
+  background: #374151;
+  font-size: 14px;
+  border-radius: 9px;
+}
+
+.offer-result {
+  margin-top: 24px;
+  padding: 20px;
+  text-align: center;
+  background: #7c3aed;
+  border-radius: 14px;
+}
+
+.offer-result span {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+}
+
+.offer-result strong {
+  font-size: 34px;
+}
+
+@media (max-width: 380px) {
+  .selected-card-header {
+    flex-direction: column;
+  }
+
+  .selected-card-header img {
+    width: 150px;
+    margin: auto;
+  }
+
+  .quick-percentages {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
