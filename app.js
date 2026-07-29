@@ -65,12 +65,7 @@ async function searchCards(query) {
 
   if (nameWords.length > 0) {
     const cardName = nameWords.join(" ").toLowerCase();
-
-    if (nameWords.length === 1) {
-      searchParts.push(`name:${cardName}*`);
-    } else {
-      searchParts.push(`name:"${cardName}"`);
-    }
+    searchParts.push(`name:${cardName}*`);
   }
 
   if (numberWord) {
@@ -83,16 +78,14 @@ async function searchCards(query) {
   const url =
     "https://api.pokemontcg.io/v2/cards" +
     `?q=${encodeURIComponent(apiQuery)}` +
-    "&pageSize=20" +
+    "&pageSize=100" +
     "&orderBy=-set.releaseDate";
-
-  console.log("Searching API:", apiQuery);
-  console.log("Request URL:", url);
 
   const response = await fetch(url);
 
   if (!response.ok) {
     const errorText = await response.text();
+
     throw new Error(
       `API error ${response.status}: ${errorText}`
     );
@@ -100,7 +93,25 @@ async function searchCards(query) {
 
   const result = await response.json();
 
-  return result.data || [];
+  let cards = result.data || [];
+
+  if (numberWord) {
+    const exactNumber = numberWord.split("/")[0];
+
+    cards = cards
+      .filter((card) => String(card.number) === exactNumber)
+      .sort((a, b) => {
+        const aExact =
+          a.name.toLowerCase() === nameWords.join(" ").toLowerCase();
+
+        const bExact =
+          b.name.toLowerCase() === nameWords.join(" ").toLowerCase();
+
+        return Number(bExact) - Number(aExact);
+      });
+  }
+
+  return cards.slice(0, 20);
 }
 
 function displayCards(cards) {
