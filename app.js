@@ -50,37 +50,52 @@ searchForm.addEventListener("submit", async (event) => {
 });
 
 async function searchCards(query) {
-  const words = query.split(/\s+/).filter(Boolean);
+  const words = query
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
 
-  const number = words.find((word) =>
+  const numberWord = words.find((word) =>
     /^\d{1,4}(?:\/\d{1,4})?$/.test(word)
   );
 
-  const nameWords = words.filter((word) => word !== number);
+  const nameWords = words.filter((word) => word !== numberWord);
 
   const searchParts = [];
 
   if (nameWords.length > 0) {
-    searchParts.push(`name:"${nameWords.join(" ")}*"`);
+    const cardName = nameWords.join(" ").toLowerCase();
+
+    if (nameWords.length === 1) {
+      searchParts.push(`name:${cardName}*`);
+    } else {
+      searchParts.push(`name:"${cardName}"`);
+    }
   }
 
-  if (number) {
-    const cardNumber = number.split("/")[0];
+  if (numberWord) {
+    const cardNumber = numberWord.split("/")[0];
     searchParts.push(`number:${cardNumber}`);
   }
 
   const apiQuery = searchParts.join(" ");
 
   const url =
-    `https://api.pokemontcg.io/v2/cards` +
+    "https://api.pokemontcg.io/v2/cards" +
     `?q=${encodeURIComponent(apiQuery)}` +
-    `&pageSize=20` +
-    `&orderBy=-set.releaseDate`;
+    "&pageSize=20" +
+    "&orderBy=-set.releaseDate";
+
+  console.log("Searching API:", apiQuery);
+  console.log("Request URL:", url);
 
   const response = await fetch(url);
 
   if (!response.ok) {
-    throw new Error(`API error: ${response.status}`);
+    const errorText = await response.text();
+    throw new Error(
+      `API error ${response.status}: ${errorText}`
+    );
   }
 
   const result = await response.json();
