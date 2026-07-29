@@ -37,7 +37,8 @@ h1 {
 }
 
 .tagline {
-  margin-top: 8px;
+  margin-top: 10px;
+  margin-bottom: 28px;
   color: #9ca3af;
   font-size: 14px;
   letter-spacing: 0.5px;
