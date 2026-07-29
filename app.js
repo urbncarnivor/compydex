@@ -22,6 +22,7 @@ const conditionPrice = document.getElementById("conditionPrice");
 const finalCompInput = document.getElementById("finalCompInput");
 const percentageInput = document.getElementById("percentageInput");
 const offerAmount = document.getElementById("offerAmount");
+const recentCardsContainer = document.getElementById("recentCards");
 
 let selectedCardMarketPrice = 0;
 
@@ -220,6 +221,7 @@ function displayCards(cards) {
 
 function openCardDetail(card) {
   selectedCardMarketPrice = getCardMarketPrice(card);
+  saveRecentCard(card);
 
   selectedCardImage.src =
     card.images.large || card.images.small;
@@ -290,3 +292,78 @@ function formatMoney(value) {
     currency: "USD"
   }).format(value);
 }
+const RECENT_CARDS_KEY = "compydexRecentCards";
+const MAX_RECENT_CARDS = 5;
+
+function saveRecentCard(card) {
+  const recentCards = getRecentCards();
+
+  const updatedCards = [
+    card,
+    ...recentCards.filter((recentCard) => recentCard.id !== card.id),
+  ].slice(0, MAX_RECENT_CARDS);
+
+  localStorage.setItem(
+    RECENT_CARDS_KEY,
+    JSON.stringify(updatedCards)
+  );
+
+  displayRecentCards();
+}
+
+function getRecentCards() {
+  try {
+    return JSON.parse(
+      localStorage.getItem(RECENT_CARDS_KEY)
+    ) || [];
+  } catch (error) {
+    console.error("Could not load recent cards:", error);
+    return [];
+  }
+}
+
+function displayRecentCards() {
+  const recentCards = getRecentCards();
+
+  if (recentCards.length === 0) {
+    recentCardsContainer.innerHTML = "<p>Nothing yet...</p>";
+    return;
+  }
+
+  recentCardsContainer.innerHTML = "";
+
+  recentCards.forEach((card) => {
+    const cardElement = document.createElement("button");
+    const price = getCardMarketPrice(card);
+
+    cardElement.className = "recent-card-item";
+
+    cardElement.innerHTML = `
+      <img
+        src="${card.images.small}"
+        alt="${card.name}"
+        loading="lazy"
+      >
+
+      <div>
+        <strong>${card.name}</strong>
+        <span>${card.set.name} · ${card.number}</span>
+        <span>
+          ${
+            price > 0
+              ? formatMoney(price)
+              : "Price unavailable"
+          }
+        </span>
+      </div>
+    `;
+
+    cardElement.addEventListener("click", () => {
+      openCardDetail(card);
+    });
+
+    recentCardsContainer.appendChild(cardElement);
+  });
+}
+
+displayRecentCards();
