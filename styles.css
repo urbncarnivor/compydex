@@ -6,7 +6,9 @@
 
 body {
   min-height: 100vh;
-  background: #111827;
+  background:
+    radial-gradient(circle at top, rgba(124, 58, 237, 0.22), transparent 38%),
+    #111827;
   color: white;
   font-family: Arial, Helvetica, sans-serif;
 }
@@ -15,7 +17,7 @@ body {
   width: 100%;
   max-width: 460px;
   margin: 0 auto;
-  padding: 32px 20px;
+  padding: 40px 20px 28px;
 }
 
 .app-header {
@@ -24,24 +26,26 @@ body {
 }
 
 h1 {
-  margin-top: 18px;
-  font-size: 44px;
-  color: #7c3aed;
+  margin: 0;
+  font-size: 48px;
+  line-height: 1;
+  letter-spacing: -2px;
+  color: #a78bfa;
 }
 
 .subtitle {
-  margin-top: 10px;
-  color: #d1d5db;
-  font-size: 17px;
-  line-height: 1.4;
+  margin-top: 16px;
+  font-size: 20px;
+  font-weight: 700;
+  color: #ffffff;
 }
 
 .tagline {
   margin-top: 10px;
-  margin-bottom: 28px;
-  color: #9ca3af;
   font-size: 14px;
-  letter-spacing: 0.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: #c4b5fd;
 }
 
 .actions {
