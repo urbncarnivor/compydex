@@ -221,7 +221,6 @@ function displayCards(cards) {
 
 function openCardDetail(card) {
   selectedCardMarketPrice = getCardMarketPrice(card);
-  saveRecentCard(card);
 
   selectedCardImage.src =
     card.images.large || card.images.small;
