@@ -346,21 +346,15 @@ footer {
     background: #dc2626;
 }
 .offer-result {
-  margin-top: 24px;
-  padding: 20px;
-  text-align: center;
-  background: #7c3aed;
-  border-radius: 14px;
-}
-
-.offer-result span {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 14px;
+    margin-top: 25px;
+    background: linear-gradient(135deg,#6d28d9,#8b5cf6);
+    border-radius: 14px;
+    padding: 20px;
+    text-align: center;
 }
 
 .offer-result strong {
-  font-size: 34px;
+    font-size: 36px;
 }
 
 @media (max-width: 380px) {
