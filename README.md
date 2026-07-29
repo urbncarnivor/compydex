@@ -1,2 +1,2 @@
 # Compydex
-Trading card identification, comps, and vendor toolkit
+Know the value. Make the Deal.
