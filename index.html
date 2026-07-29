@@ -31,14 +31,38 @@
     </header>
 
     <section class="actions">
-      <button id="scanButton" type="button">
-        📷 Scan Card
-      </button>
+  <button id="scanButton" type="button">
+    📷 Scan Card
+  </button>
 
-      <button id="searchButton" type="button">
-        🔍 Search Card
+  <button id="searchButton" type="button">
+    🔍 Search Card
+  </button>
+</section>
+
+<section id="searchPanel" class="search-panel hidden">
+  <form id="searchForm">
+    <label for="searchInput">Search by card name or number</label>
+
+    <div class="search-row">
+      <input
+        id="searchInput"
+        type="search"
+        placeholder="Example: Charizard 199"
+        autocomplete="off"
+        required
+      >
+
+      <button id="submitSearchButton" type="submit">
+        Search
       </button>
-    </section>
+    </div>
+  </form>
+
+  <p id="searchStatus"></p>
+
+  <div id="searchResults" class="search-results"></div>
+</section>
 
     <section class="recent">
       <h2>Recent Cards</h2>
