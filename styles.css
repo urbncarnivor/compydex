@@ -218,9 +218,9 @@ footer {
 }
 
 .selected-card-header img {
-  width: 120px;
+  width: 90px;
   height: auto;
-  border-radius: 9px;
+  border-radius: 8px;
 }
 
 .selected-card-header h2 {
@@ -316,14 +316,35 @@ footer {
   margin-top: 14px;
 }
 
+
 .quick-percentages button {
-  margin: 0;
-  padding: 11px 4px;
-  background: #374151;
-  font-size: 14px;
-  border-radius: 9px;
+    margin: 0;
+    padding: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 10px;
+    color: white;
 }
 
+.quick-percentages button:nth-child(1) {
+    background: #16a34a;
+}
+
+.quick-percentages button:nth-child(2) {
+    background: #2563eb;
+}
+
+.quick-percentages button:nth-child(3) {
+    background: #7c3aed;
+}
+
+.quick-percentages button:nth-child(4) {
+    background: #f59e0b;
+}
+
+.quick-percentages button:nth-child(5) {
+    background: #dc2626;
+}
 .offer-result {
   margin-top: 24px;
   padding: 20px;
