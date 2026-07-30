@@ -23,6 +23,8 @@ const finalCompInput = document.getElementById("finalCompInput");
 const percentageInput = document.getElementById("percentageInput");
 const offerAmount = document.getElementById("offerAmount");
 const recentCardsContainer = document.getElementById("recentCards");
+const ebaySoldbutton = document.getElementById("ebaySoldButton");
+
 
 let selectedCardMarketPrice = 0;
 
@@ -228,6 +230,16 @@ function openCardDetail(card) {
   selectedCardImage.alt = card.name;
   selectedCardName.textContent = card.name;
   selectedCardSet.textContent = card.set.name;
+  ebaySoldButton.onclick = () => {
+  const search = encodeURIComponent(
+    `${card.name} ${card.number} ${card.set.name}`
+  );
+
+  window.open(
+    `https://www.ebay.com/sch/i.html?_nkw=${search}&LH_Sold=1&LH_Complete=1`,
+    "_blank"
+  );
+};
 
   selectedCardNumber.textContent =
     `Card ${card.number}/${card.set.printedTotal}`;
