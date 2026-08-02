@@ -23,7 +23,7 @@ const finalCompInput = document.getElementById("finalCompInput");
 const percentageInput = document.getElementById("percentageInput");
 const offerAmount = document.getElementById("offerAmount");
 const recentCardsContainer = document.getElementById("recentCards");
-const ebaySoldbutton = document.getElementById("ebaySoldButton");
+const ebaySoldButton = document.getElementById("ebaySoldButton");
 
 
 let selectedCardMarketPrice = 0;
