@@ -68,11 +68,13 @@ searchForm.addEventListener("submit", async (event) => {
       `${cards.length} card${cards.length === 1 ? "" : "s"} found`;
 
     displayCards(cards);
+
   } catch (error) {
     console.error(error);
 
-   searchStatus.textContent =
-  `Search failed: ${error.message}`; 
+    searchStatus.textContent =
+      `Search failed: ${error.message}`;
+  }
 });
 
 conditionSelect.addEventListener("change", () => {
