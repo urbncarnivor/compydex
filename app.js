@@ -130,10 +130,6 @@ const apiQuery =
   const result = await response.json();
   let cards = result.data || [];
 
-  const searchedName = nameWords
-    .join(" ")
-    .toLowerCase();
-
   cards.sort((a, b) => {
     const aExact =
       a.name.toLowerCase() === searchedName;
