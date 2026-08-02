@@ -1,5 +1,4 @@
 const scanButton = document.getElementById("scanButton");
-const searchButton = document.getElementById("searchButton");
 
 const searchPanel = document.getElementById("searchPanel");
 const searchForm = document.getElementById("searchForm");
@@ -27,14 +26,6 @@ const ebaySoldButton = document.getElementById("ebaySoldButton");
 
 
 let selectedCardMarketPrice = 0;
-
-searchButton.addEventListener("click", () => {
-  searchPanel.classList.toggle("hidden");
-
-  if (!searchPanel.classList.contains("hidden")) {
-    searchInput.focus();
-  }
-});
 
 scanButton.addEventListener("click", () => {
   alert("Camera scanner is next.");
