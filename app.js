@@ -71,9 +71,8 @@ searchForm.addEventListener("submit", async (event) => {
   } catch (error) {
     console.error(error);
 
-    searchStatus.textContent =
-      "Search failed. Please check your connection and try again.";
-  }
+   searchStatus.textContent =
+  `Search failed: ${error.message}`; 
 });
 
 conditionSelect.addEventListener("change", () => {
