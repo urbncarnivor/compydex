@@ -235,10 +235,16 @@ function openCardDetail(card) {
     `${card.name} ${card.number} ${card.set.name}`
   );
 
-  window.open(
-    `https://www.ebay.com/sch/i.html?_nkw=${search}&LH_Sold=1&LH_Complete=1`,
-    "_blank"
-  );
+  const ebayUrl =
+    `https://www.ebay.com/sch/i.html?_nkw=${search}&LH_Sold=1&LH_Complete=1`;
+
+  const ebayWindow = window.open(ebayUrl, "_blank");
+
+  if (!ebayWindow) {
+    alert(
+      "Your browser blocked the eBay window. Please allow pop-ups for CompyDex and try again."
+    );
+  }
 };
 
   selectedCardNumber.textContent =
