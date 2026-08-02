@@ -115,7 +115,7 @@ const apiQuery =
   const url =
     "https://api.pokemontcg.io/v2/cards" +
     `?q=${encodeURIComponent(apiQuery)}` +
-    "&pageSize=250";
+    "&pageSize=50";
 
   const response = await fetch(url);
 
