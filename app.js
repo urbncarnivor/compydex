@@ -117,7 +117,21 @@ const apiQuery =
     `?q=${encodeURIComponent(apiQuery)}` +
     "&pageSize=50";
 
-  const response = await fetch(url);
+  let response;
+
+for (let attempt = 1; attempt <= 3; attempt++) {
+  response = await fetch(url);
+
+  if (response.ok || response.status < 500) {
+    break;
+  }
+
+  if (attempt < 3) {
+    await new Promise((resolve) =>
+      setTimeout(resolve, attempt * 500)
+    );
+  }
+}
 
   if (!response.ok) {
     const errorText = await response.text();
