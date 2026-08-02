@@ -105,8 +105,12 @@ async function searchCards(query) {
     return [];
   }
 
-  const firstNameWord = nameWords[0].toLowerCase();
-  const apiQuery = `name:${firstNameWord}*`;
+  const searchedName = nameWords.join(" ").toLowerCase();
+
+const apiQuery =
+  nameWords.length === 1
+    ? `name:${searchedName}*`
+    : `name:"${searchedName}"`;
 
   const url =
     "https://api.pokemontcg.io/v2/cards" +
