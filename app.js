@@ -97,16 +97,16 @@ async function searchCards(query) {
     /^\d{1,4}(?:\/\d{1,4})?$/.test(word)
   );
 
-  const nameWords = words.filter((word) => word !== numberWord);
+  const nameWords = words.filter(
+    (word) => word !== numberWord
+  );
 
-  const searchParts = [];
+  if (nameWords.length === 0) {
+    return [];
+  }
 
-  if (nameWords.length > 0) {
-  const cardName = nameWords.join(" ").toLowerCase();
-  searchParts.push(`name:"${cardName}"`);
-}
-
-  const apiQuery = searchParts.join(" ");
+  const cardName = nameWords[0].toLowerCase();
+  const apiQuery = `name:${cardName}*`;
 
   const url =
     "https://api.pokemontcg.io/v2/cards" +
@@ -125,27 +125,34 @@ async function searchCards(query) {
   }
 
   const result = await response.json();
-
   let cards = result.data || [];
+
+  const searchedName = nameWords
+    .join(" ")
+    .toLowerCase();
+
+  cards = cards.sort((a, b) => {
+    const aExact =
+      a.name.toLowerCase() === searchedName;
+
+    const bExact =
+      b.name.toLowerCase() === searchedName;
+
+    return Number(bExact) - Number(aExact);
+  });
 
   if (numberWord) {
     const exactNumber = String(
-  Number(numberWord.split("/")[0])
-);
+      Number(numberWord.split("/")[0])
+    );
 
-    cards = cards
-      .filter((card) => String(card.number) === exactNumber)
-      .sort((a, b) => {
-        const searchedName = nameWords.join(" ").toLowerCase();
+    cards = cards.filter((card) => {
+      const normalizedCardNumber = String(
+        Number(card.number)
+      );
 
-        const aExact =
-          a.name.toLowerCase() === searchedName;
-
-        const bExact =
-          b.name.toLowerCase() === searchedName;
-
-        return Number(bExact) - Number(aExact);
-      });
+      return normalizedCardNumber === exactNumber;
+    });
   }
 
   return cards.slice(0, 20);
