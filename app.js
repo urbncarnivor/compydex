@@ -101,9 +101,10 @@ async function searchCards(query) {
 
   const searchParts = [];
 
-const cardName = nameWords.join(" ").toLowerCase();
-searchParts.push(`name:"${cardName}"`);
-  }
+  if (nameWords.length > 0) {
+  const cardName = nameWords.join(" ").toLowerCase();
+  searchParts.push(`name:"${cardName}"`);
+}
 
   const apiQuery = searchParts.join(" ");
 
