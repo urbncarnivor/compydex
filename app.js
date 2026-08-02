@@ -106,15 +106,6 @@ async function searchCards(query) {
     searchParts.push(`name:${cardName}*`);
   }
 
-  if (numberWord) {
-  const cardNumber = String(
-    Number(numberWord.split("/")[0])
-  );
-
-  searchParts.push(`number:${cardNumber}`);
-}
-  }
-
   const apiQuery = searchParts.join(" ");
 
   const url =
