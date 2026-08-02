@@ -105,14 +105,13 @@ async function searchCards(query) {
     return [];
   }
 
-  const cardName = nameWords[0].toLowerCase();
-  const apiQuery = `name:${cardName}*`;
+  const firstNameWord = nameWords[0].toLowerCase();
+  const apiQuery = `name:${firstNameWord}*`;
 
   const url =
     "https://api.pokemontcg.io/v2/cards" +
     `?q=${encodeURIComponent(apiQuery)}` +
-    "&pageSize=100" +
-    "&orderBy=-set.releaseDate";
+    "&pageSize=250";
 
   const response = await fetch(url);
 
@@ -131,14 +130,21 @@ async function searchCards(query) {
     .join(" ")
     .toLowerCase();
 
-  cards = cards.sort((a, b) => {
+  cards.sort((a, b) => {
     const aExact =
       a.name.toLowerCase() === searchedName;
 
     const bExact =
       b.name.toLowerCase() === searchedName;
 
-    return Number(bExact) - Number(aExact);
+    if (aExact !== bExact) {
+      return Number(bExact) - Number(aExact);
+    }
+
+    const aDate = a.set?.releaseDate || "";
+    const bDate = b.set?.releaseDate || "";
+
+    return bDate.localeCompare(aDate);
   });
 
   if (numberWord) {
