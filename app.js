@@ -107,8 +107,12 @@ async function searchCards(query) {
   }
 
   if (numberWord) {
-    const cardNumber = numberWord.split("/")[0];
-    searchParts.push(`number:${cardNumber}`);
+  const cardNumber = String(
+    Number(numberWord.split("/")[0])
+  );
+
+  searchParts.push(`number:${cardNumber}`);
+}
   }
 
   const apiQuery = searchParts.join(" ");
@@ -134,7 +138,9 @@ async function searchCards(query) {
   let cards = result.data || [];
 
   if (numberWord) {
-    const exactNumber = numberWord.split("/")[0];
+    const exactNumber = String(
+  Number(numberWord.split("/")[0])
+);
 
     cards = cards
       .filter((card) => String(card.number) === exactNumber)
