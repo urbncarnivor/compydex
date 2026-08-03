@@ -101,9 +101,11 @@ async function searchCards(query) {
     (word) => word !== numberWord
   );
 
-  if (nameWords.length === 0) {
-    return [];
-  }
+  if (nameWords.length === 0 || !numberWord) {
+  throw new Error(
+    "Enter the card name and number, for example: Charizard V 154"
+  );
+}
 
   const searchedName = nameWords.join(" ").toLowerCase();
 
