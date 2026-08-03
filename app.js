@@ -113,9 +113,7 @@ const apiQuery =
     : `name:"${searchedName}"`;
 
   const url =
-    "https://api.pokemontcg.io/v2/cards" +
-    `?q=${encodeURIComponent(apiQuery)}` +
-    "&pageSize=50";
+  `/api/cards?q=${encodeURIComponent(apiQuery)}`;
 
   let response;
 let lastFetchError;
