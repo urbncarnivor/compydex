@@ -118,19 +118,30 @@ const apiQuery =
     "&pageSize=50";
 
   let response;
+let lastFetchError;
 
 for (let attempt = 1; attempt <= 3; attempt++) {
-  response = await fetch(url);
+  try {
+    response = await fetch(url);
 
-  if (response.ok || response.status < 500) {
-    break;
+    if (response.ok || response.status < 500) {
+      break;
+    }
+  } catch (error) {
+    lastFetchError = error;
   }
 
   if (attempt < 3) {
     await new Promise((resolve) =>
-      setTimeout(resolve, attempt * 500)
+      setTimeout(resolve, attempt * 750)
     );
   }
+}
+
+if (!response) {
+  throw new Error(
+    lastFetchError?.message || "Pokémon API temporarily unavailable"
+  );
 }
 
   if (!response.ok) {
