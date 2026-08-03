@@ -16,6 +16,10 @@ const selectedCardNumber = document.getElementById("selectedCardNumber");
 const selectedCardRarity = document.getElementById("selectedCardRarity");
 
 const conditionSelect = document.getElementById("conditionSelect");
+const cardTypeSelect = document.getElementById("cardTypeSelect");
+const gradeSelect = document.getElementById("gradeSelect");
+const gradeField = document.getElementById("gradeField");
+const conditionField = conditionSelect.closest(".detail-field");
 const marketPrice = document.getElementById("marketPrice");
 const conditionPrice = document.getElementById("conditionPrice");
 const finalCompInput = document.getElementById("finalCompInput");
@@ -31,6 +35,16 @@ scanButton.addEventListener("click", () => {
   alert("Camera scanner is next.");
 });
 
+function updateCardTypeFields() {
+  const isRaw = cardTypeSelect.value === "raw";
+
+  conditionField.style.display = isRaw ? "" : "none";
+  gradeField.style.display = isRaw ? "none" : "";
+}
+
+cardTypeSelect.addEventListener("change", updateCardTypeFields);
+
+updateCardTypeFields();
 closeDetailButton.addEventListener("click", () => {
   cardDetailPanel.classList.add("hidden");
 });
@@ -293,12 +307,32 @@ function openCardDetail(card) {
   selectedCardName.textContent = card.name;
   selectedCardSet.textContent = card.set.name;
   ebaySoldButton.onclick = () => {
-  const search = encodeURIComponent(
-    `${card.name} ${card.number} ${card.set.name}`
-  );
+  const cardType = cardTypeSelect.value;
+  const grade = gradeSelect.value;
+
+  let searchText = `${card.name} ${card.number} ${card.set.name}`;
+  let ebayFilters = "&LH_Sold=1&LH_Complete=1";
+
+  if (cardType === "raw") {
+    searchText += " raw ungraded";
+    ebayFilters += "&LH_ItemCondition=3000";
+  } else {
+    searchText = `${cardType.toUpperCase()} ${grade} ${searchText}`;
+  }
+
+  const search = encodeURIComponent(searchText);
 
   const ebayUrl =
-    `https://www.ebay.com/sch/i.html?_nkw=${search}&LH_Sold=1&LH_Complete=1`;
+    `https://www.ebay.com/sch/i.html?_nkw=${search}${ebayFilters}`;
+
+  const ebayWindow = window.open(ebayUrl, "_blank");
+
+  if (!ebayWindow) {
+    alert(
+      "Your browser blocked the eBay window. Please allow pop-ups for CompyDex and try again."
+    );
+  }
+};
 
   const ebayWindow = window.open(ebayUrl, "_blank");
 
