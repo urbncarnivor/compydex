@@ -40,9 +40,26 @@ function updateCardTypeFields() {
 
   conditionField.style.display = isRaw ? "" : "none";
   gradeField.style.display = isRaw ? "none" : "";
-}
 
+  if (isRaw) {
+    marketPrice.textContent =
+      selectedCardMarketPrice > 0
+        ? formatMoney(selectedCardMarketPrice)
+        : "Unavailable";
+
+    updateConditionValue();
+  } else {
+    marketPrice.textContent = "Use eBay sold comps";
+    conditionPrice.textContent = "Enter graded comp";
+    finalCompInput.value = "";
+    offerAmount.textContent = formatMoney(0);
+  }
+}
 cardTypeSelect.addEventListener("change", updateCardTypeFields);
+
+gradeSelect.addEventListener("change", () => {
+  updateCardTypeFields();
+});
 
 updateCardTypeFields();
 closeDetailButton.addEventListener("click", () => {
