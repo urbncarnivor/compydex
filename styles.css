@@ -390,3 +390,16 @@ footer {
     grid-template-columns: repeat(3, 1fr);
   }
 }
+#ebaySoldButton {
+  background-color: #0064d2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+#ebaySoldButton:hover {
+  background-color: #004fa8;
+}
