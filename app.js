@@ -189,24 +189,50 @@ if (!response) {
   return cards;
 }
 
-function getCardMarketPrice(card) {
+const PRICE_VARIANT_LABELS = {
+  holofoil: "Holofoil",
+  reverseHolofoil: "Reverse Holofoil",
+  normal: "Non-Holo",
+  firstEditionHolofoil: "1st Edition Holofoil",
+  firstEditionNormal: "1st Edition Non-Holo",
+  unlimitedHolofoil: "Unlimited Holofoil",
+  unlimitedNormal: "Unlimited Non-Holo",
+};
+
+function getCardPriceVariants(card) {
   const prices = card.tcgplayer?.prices;
 
   if (!prices) {
-    return 0;
+    return [];
   }
 
-  const availablePrices = [
-    prices.holofoil?.market,
-    prices.reverseHolofoil?.market,
-    prices.normal?.market,
-    prices.firstEditionHolofoil?.market,
-    prices.firstEditionNormal?.market,
-    prices.unlimitedHolofoil?.market,
-    prices.unlimitedNormal?.market
-  ].filter((price) => typeof price === "number");
+  return Object.entries(prices)
+    .map(([key, priceData]) => {
+      const marketPrice = priceData?.market;
 
-  return availablePrices[0] || 0;
+      if (typeof marketPrice !== "number") {
+        return null;
+      }
+
+      return {
+        key,
+        label: PRICE_VARIANT_LABELS[key] || key,
+        marketPrice,
+      };
+    })
+    .filter(Boolean);
+}
+
+function getDefaultCardVariant(card) {
+  const variants = getCardPriceVariants(card);
+
+  return variants[0] || null;
+}
+
+function getCardMarketPrice(card) {
+  const defaultVariant = getDefaultCardVariant(card);
+
+  return defaultVariant?.marketPrice || 0;
 }
 
 function displayCards(cards) {
@@ -216,7 +242,20 @@ function displayCards(cards) {
     const cardElement = document.createElement("article");
     cardElement.className = "card-result";
 
-    const price = getCardMarketPrice(card);
+    const variants = getCardPriceVariants(card);
+
+    const variantMarkup =
+      variants.length > 0
+        ? variants
+            .map(
+              (variant) => `
+                <p class="card-price">
+                  ${variant.label}: ${formatMoney(variant.marketPrice)}
+                </p>
+              `
+            )
+            .join("")
+        : `<p class="card-price">Market price unavailable</p>`;
 
     cardElement.innerHTML = `
       <img
@@ -230,13 +269,9 @@ function displayCards(cards) {
         <p>${card.set.name}</p>
         <p>Card ${card.number}/${card.set.printedTotal}</p>
 
-        <p class="card-price">
-          ${
-            price > 0
-              ? `Market: ${formatMoney(price)}`
-              : "Market price unavailable"
-          }
-        </p>
+        <div class="price-variant-list">
+          ${variantMarkup}
+        </div>
       </div>
     `;
 
