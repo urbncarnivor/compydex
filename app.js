@@ -334,21 +334,6 @@ function openCardDetail(card) {
   }
 };
 
-  const ebayWindow = window.open(ebayUrl, "_blank");
-
-  if (!ebayWindow) {
-    alert(
-      "Your browser blocked the eBay window. Please allow pop-ups for CompyDex and try again."
-    );
-  }
-};
-
-  selectedCardNumber.textContent =
-    `Card ${card.number}/${card.set.printedTotal}`;
-
-  selectedCardRarity.textContent =
-    `Rarity: ${card.rarity || "Unknown"}`;
-
   marketPrice.textContent =
     selectedCardMarketPrice > 0
       ? formatMoney(selectedCardMarketPrice)
