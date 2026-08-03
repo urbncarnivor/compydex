@@ -9,10 +9,11 @@ export async function onRequestGet(context) {
     );
   }
 
-  const upstreamUrl =
-    "https://api.pokemontcg.io/v2/cards" +
-    `?q=${encodeURIComponent(query)}` +
-    "&pageSize=50";
+ const upstreamUrl =
+  "https://api.pokemontcg.io/v2/cards" +
+  `?q=${encodeURIComponent(query)}` +
+  "&pageSize=250" +
+  "&orderBy=-set.releaseDate"; 
 
   let response;
   let lastError;
