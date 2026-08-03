@@ -367,7 +367,6 @@ function openCardDetail(card) {
     behavior: "smooth",
     block: "start"
   });
-}
 
 function updateConditionValue() {
   const conditionMultiplier =
