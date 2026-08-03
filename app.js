@@ -186,7 +186,7 @@ if (!response) {
     });
   }
 
-  return cards.slice(0, 20);
+  return cards;
 }
 
 function getCardMarketPrice(card) {
