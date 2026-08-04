@@ -44,6 +44,9 @@ function updateCardTypeFields() {
   gradeField.style.display = isRaw ? "none" : "";
 
   if (isRaw) {
+    marketPriceLabel.textContent = "TCG Market";
+    conditionPriceLabel.textContent = "Condition Value";
+
     marketPrice.textContent =
       selectedCardMarketPrice > 0
         ? formatMoney(selectedCardMarketPrice)
@@ -51,6 +54,9 @@ function updateCardTypeFields() {
 
     updateConditionValue();
   } else {
+    marketPriceLabel.textContent = "Graded Comp";
+    conditionPriceLabel.textContent = "Offer Value";
+
     marketPrice.textContent = "Use eBay sold comps";
     conditionPrice.textContent = "Enter graded comp";
     finalCompInput.value = "";
