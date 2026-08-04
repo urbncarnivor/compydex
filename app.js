@@ -619,3 +619,6 @@ function addCardToTrade(card) {
 
   activeTradeSide = null;
 }
+function updateTradeDisplay() {
+  console.log("Trade Updated");
+}
