@@ -407,9 +407,10 @@ footer {
   box-shadow: 0 6px 18px rgba(0, 100, 210, 0.35);
 }
 .rarity-icon {
-  width: 20px;
+  width: 32px;
   height: 20px;
   object-fit: contain;
+  flex-shrink: 0;
 }
 
 #selectedCardRarity {
