@@ -37,10 +37,28 @@ const addYourCardButton =
 
 const addTheirCardButton =
   document.getElementById("addTheirCardButton");
+const yourTradeCards =
+  document.getElementById("yourTradeCards");
 
+const theirTradeCards =
+  document.getElementById("theirTradeCards");
+
+const yourTradeTotal =
+  document.getElementById("yourTradeTotal");
+
+const theirTradeTotal =
+  document.getElementById("theirTradeTotal");
+
+const tradeDifference =
+  document.getElementById("tradeDifference");
+
+const tradeStatus =
+  document.getElementById("tradeStatus");
 
 let selectedCardMarketPrice = 0;
 let activeTradeSide = null;
+let yourTradeCardData = [];
+let theirTradeCardData = [];
 
 scanButton.addEventListener("click", () => {
   alert("Camera scanner is next.");
