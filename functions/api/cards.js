@@ -21,10 +21,11 @@ export async function onRequestGet(context) {
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
       response = await fetch(upstreamUrl, {
-        headers: {
-          Accept: "application/json",
-        },
-      });
+  headers: {
+    Accept: "application/json",
+    "X-Api-Key": context.env.POKEMONTCG_API_KEY,
+  },
+});
 
       if (response.ok || response.status < 500) {
         break;
