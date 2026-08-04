@@ -334,25 +334,33 @@ function getRarityDisplay(rarity) {
     label: rarity || "Unknown"
   };
 }
+
+function openCardDetail(card) {
+  selectedCardMarketPrice = getCardMarketPrice(card);
+
+  selectedCardImage.src =
+    card.images.large || card.images.small;
+
   selectedCardImage.alt = card.name;
   selectedCardName.textContent = card.name;
-  selectedCardSet.textContent = card.set?.name || "Unknown Set";
+  selectedCardSet.textContent =
+    card.set?.name || "Unknown Set";
 
   selectedCardNumber.textContent =
     `Card ${card.number || "?"}/${card.set?.printedTotal || "?"}`;
 
-const rarityDisplay = getRarityDisplay(card.rarity);
+  const rarityDisplay = getRarityDisplay(card.rarity);
 
-selectedCardRarity.innerHTML = rarityDisplay.icon
-  ? `
-      <img
-        class="rarity-icon"
-        src="${rarityDisplay.icon}"
-        alt="${rarityDisplay.label}"
-      >
-      <span>${rarityDisplay.label}</span>
-    `
-  : `<span>${rarityDisplay.label}</span>`; 
+  selectedCardRarity.innerHTML = rarityDisplay.icon
+    ? `
+        <img
+          class="rarity-icon"
+          src="${rarityDisplay.icon}"
+          alt="${rarityDisplay.label}"
+        >
+        <span>${rarityDisplay.label}</span>
+      `
+    : `<span>${rarityDisplay.label}</span>`;
 
   ebaySoldButton.onclick = () => {
     const cardType = cardTypeSelect.value;
