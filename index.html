@@ -64,6 +64,57 @@
 
   <div id="searchResults" class="search-results"></div>
 </section>
+    <section id="tradePanel" class="trade-panel hidden">
+  <div class="trade-header">
+    <h2>⚖️ Trade Mode</h2>
+
+    <button id="closeTradeButton" type="button">
+      ✕ Close
+    </button>
+  </div>
+
+  <div class="trade-grid">
+    <div class="trade-side">
+      <h3>Your Side</h3>
+
+      <button id="addYourCardButton" type="button">
+        + Add Card
+      </button>
+
+      <div id="yourTradeCards" class="trade-card-list">
+        <p class="trade-empty">No cards added yet.</p>
+      </div>
+
+      <div class="trade-total">
+        <span>Your Total</span>
+        <strong id="yourTradeTotal">$0.00</strong>
+      </div>
+    </div>
+
+    <div class="trade-side">
+      <h3>Their Side</h3>
+
+      <button id="addTheirCardButton" type="button">
+        + Add Card
+      </button>
+
+      <div id="theirTradeCards" class="trade-card-list">
+        <p class="trade-empty">No cards added yet.</p>
+      </div>
+
+      <div class="trade-total">
+        <span>Their Total</span>
+        <strong id="theirTradeTotal">$0.00</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="trade-summary">
+    <span>Difference</span>
+    <strong id="tradeDifference">$0.00</strong>
+    <p id="tradeStatus">⚪ Even Trade</p>
+  </div>
+</section>
 <section id="cardDetailPanel" class="card-detail-panel hidden">
 
   <button id="closeDetailButton" class="close-detail-button" type="button">
