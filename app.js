@@ -29,12 +29,27 @@ const percentageInput = document.getElementById("percentageInput");
 const offerAmount = document.getElementById("offerAmount");
 const recentCardsContainer = document.getElementById("recentCards");
 const ebaySoldButton = document.getElementById("ebaySoldButton");
+const tradeModeButton = document.getElementById("tradeModeButton");
+const tradePanel = document.getElementById("tradePanel");
+const closeTradeButton = document.getElementById("closeTradeButton");
 
 
 let selectedCardMarketPrice = 0;
 
 scanButton.addEventListener("click", () => {
   alert("Camera scanner is next.");
+});
+tradeModeButton.addEventListener("click", () => {
+  tradePanel.classList.remove("hidden");
+
+  tradePanel.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+});
+
+closeTradeButton.addEventListener("click", () => {
+  tradePanel.classList.add("hidden");
 });
 
 function updateCardTypeFields() {
