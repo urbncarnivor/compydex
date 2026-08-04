@@ -382,8 +382,16 @@ function displayCards(cards) {
     `;
 
     cardElement.addEventListener("click", () => {
-      openCardDetail(card);
-    });
+    if (activeTradeSide) {
+        addCardToTrade(card);
+        tradePanel.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+        });
+    } else {
+        openCardDetail(card);
+    }
+});
 
     searchResults.appendChild(cardElement);
   });
