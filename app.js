@@ -330,34 +330,42 @@ function openCardDetail(card) {
 
   selectedCardImage.alt = card.name;
   selectedCardName.textContent = card.name;
-  selectedCardSet.textContent = card.set.name;
+  selectedCardSet.textContent = card.set?.name || "Unknown Set";
+
+  selectedCardNumber.textContent =
+    `Card ${card.number || "?"}/${card.set?.printedTotal || "?"}`;
+
+  selectedCardRarity.textContent =
+    `Rarity: ${card.rarity || "Unknown"}`;
+
   ebaySoldButton.onclick = () => {
-  const cardType = cardTypeSelect.value;
-  const grade = gradeSelect.value;
+    const cardType = cardTypeSelect.value;
+    const grade = gradeSelect.value;
 
-  let searchText = `${card.name} ${card.number} ${card.set.name}`;
-  let ebayFilters = "&LH_Sold=1&LH_Complete=1";
+    let searchText =
+      `${card.name} ${card.number} ${card.set?.name || ""}`;
 
-  if (cardType === "raw") {
-    searchText += " raw ungraded";
-    ebayFilters += "&LH_ItemCondition=3000";
-  } else {
-    searchText = `${cardType.toUpperCase()} ${grade} ${searchText}`;
-  }
+    if (cardType === "psa") {
+      searchText += ` PSA ${grade}`;
+    } else if (cardType === "bgs") {
+      searchText += ` BGS ${grade}`;
+    } else {
+      searchText += " -PSA -BGS graded";
+    }
 
-  const search = encodeURIComponent(searchText);
+    const search = encodeURIComponent(searchText);
 
-  const ebayUrl =
-    `https://www.ebay.com/sch/i.html?_nkw=${search}${ebayFilters}`;
+    const ebayUrl =
+      `https://www.ebay.com/sch/i.html?_nkw=${search}&LH_Sold=1&LH_Complete=1`;
 
-  const ebayWindow = window.open(ebayUrl, "_blank");
+    const ebayWindow = window.open(ebayUrl, "_blank");
 
-  if (!ebayWindow) {
-    alert(
-      "Your browser blocked the eBay window. Please allow pop-ups for CompyDex and try again."
-    );
-  }
-};
+    if (!ebayWindow) {
+      alert(
+        "Your browser blocked the eBay window. Please allow pop-ups for CompyDex and try again."
+      );
+    }
+  };
 
   marketPrice.textContent =
     selectedCardMarketPrice > 0
@@ -367,8 +375,14 @@ function openCardDetail(card) {
   conditionSelect.value = "1";
 
   finalCompInput.value =
-    selectedCardMarketPrice.toFixed(2);
+    selectedCardMarketPrice > 0
+      ? selectedCardMarketPrice.toFixed(2)
+      : "";
 
+  cardTypeSelect.value = "raw";
+  gradeSelect.value = "10";
+
+  updateCardTypeFields();
   updateConditionValue();
 
   cardDetailPanel.classList.remove("hidden");
