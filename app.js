@@ -663,25 +663,69 @@ function updateTradeDisplay() {
       return;
     }
 
-    container.innerHTML = cards
-      .map((card) => `
-        <div class="trade-card-item">
-          <img
-            src="${card.image}"
-            alt="${card.name}"
-          >
+container.innerHTML = cards
+  .map((card, index) => `
+    <div class="trade-card-item">
+      <img
+        src="${card.image}"
+        alt="${card.name}"
+      >
 
-          <div>
-            <strong>${card.name}</strong>
-           <p>${formatMoney(getTradeCardAdjustedValue(card))}</p> 
-          </div>
-        </div>
-      `)
-      .join("");
+      <div class="trade-card-details">
+        <strong>${card.name}</strong>
+
+        <span>
+          Market: ${formatMoney(card.rawPrice)}
+        </span>
+
+        <label>
+          Buy %
+          <input
+            class="trade-percentage-input"
+            type="number"
+            min="0"
+            max="100"
+            step="0.5"
+            value="${card.percentage}"
+            data-card-index="${index}"
+          >
+        </label>
+
+        <p>
+          Value:
+          ${formatMoney(
+            getTradeCardAdjustedValue(card)
+          )}
+        </p>
+      </div>
+    </div>
+  `)
+  .join("");
   };
 
   renderSide(yourTradeCardData, yourTradeCards);
   renderSide(theirTradeCardData, theirTradeCards);
+
+ document
+  .querySelectorAll(".trade-percentage-input")
+  .forEach((input) => {
+    input.addEventListener("input", () => {
+      const index = Number(input.dataset.cardIndex);
+      const percentage = Number(input.value) || 0;
+
+      const card =
+        input.closest("#yourTradeCards")
+          ? yourTradeCardData[index]
+          : theirTradeCardData[index];
+
+      if (!card) {
+        return;
+      }
+
+      card.percentage = percentage;
+      updateTradeDisplay();
+    });
+  }); 
 
  const yourTotal = yourTradeCardData.reduce(
   (total, card) =>
