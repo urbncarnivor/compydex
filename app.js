@@ -53,6 +53,34 @@ tradeModeButton.addEventListener("click", () => {
     block: "start"
   });
 });
+addYourCardButton.addEventListener("click", () => {
+  activeTradeSide = "your";
+
+  searchInput.value = "";
+  searchStatus.textContent =
+    "Search for a card to add to Your Side";
+
+  searchInput.focus();
+
+  searchPanel.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+});
+
+addTheirCardButton.addEventListener("click", () => {
+  activeTradeSide = "their";
+
+  searchInput.value = "";
+  searchStatus.textContent =
+    "Search for a card to add to Their Side";
+
+  searchInput.focus();
+
+  searchPanel.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
 
 closeTradeButton.addEventListener("click", () => {
   tradePanel.classList.add("hidden");
