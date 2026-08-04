@@ -594,3 +594,20 @@ function displayRecentCards() {
 }
 
 displayRecentCards();
+function addCardToTrade(card) {
+  const cardData = {
+    name: card.name,
+    image: card.images.small,
+    price: getCardMarketPrice(card)
+  };
+
+  if (activeTradeSide === "your") {
+    yourTradeCardData.push(cardData);
+  } else if (activeTradeSide === "their") {
+    theirTradeCardData.push(cardData);
+  }
+
+  updateTradeDisplay();
+
+  activeTradeSide = null;
+}
