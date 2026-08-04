@@ -620,5 +620,59 @@ function addCardToTrade(card) {
   activeTradeSide = null;
 }
 function updateTradeDisplay() {
-  console.log("Trade Updated");
+  const renderSide = (cards, container) => {
+    if (cards.length === 0) {
+      container.innerHTML =
+        `<p class="trade-empty">No cards added yet.</p>`;
+      return;
+    }
+
+    container.innerHTML = cards
+      .map((card) => `
+        <div class="trade-card-item">
+          <img
+            src="${card.image}"
+            alt="${card.name}"
+          >
+
+          <div>
+            <strong>${card.name}</strong>
+            <p>${formatMoney(card.price)}</p>
+          </div>
+        </div>
+      `)
+      .join("");
+  };
+
+  renderSide(yourTradeCardData, yourTradeCards);
+  renderSide(theirTradeCardData, theirTradeCards);
+
+  const yourTotal = yourTradeCardData.reduce(
+    (total, card) => total + card.price,
+    0
+  );
+
+  const theirTotal = theirTradeCardData.reduce(
+    (total, card) => total + card.price,
+    0
+  );
+
+  const difference = yourTotal - theirTotal;
+
+  yourTradeTotal.textContent = formatMoney(yourTotal);
+  theirTradeTotal.textContent = formatMoney(theirTotal);
+  tradeDifference.textContent =
+    formatMoney(Math.abs(difference));
+
+  if (Math.abs(difference) < 0.01) {
+    tradeStatus.textContent = "⚪ Even Trade";
+  } else if (difference > 0) {
+    tradeStatus.textContent =
+      `🟢 Your Side is ahead by ${formatMoney(difference)}`;
+  } else {
+    tradeStatus.textContent =
+      `🔴 Their Side is ahead by ${formatMoney(
+        Math.abs(difference)
+      )}`;
+  }
 }
