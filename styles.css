@@ -406,9 +406,10 @@ footer {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0, 100, 210, 0.35);
 }
-.rarity-icon {
+.selected-card-header img.rarity-icon {
   width: 16px;
   height: 10px;
+  margin: 0;
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -416,5 +417,5 @@ footer {
 #selectedCardRarity {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
