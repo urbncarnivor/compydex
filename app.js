@@ -55,7 +55,7 @@ function updateCardTypeFields() {
     updateConditionValue();
   } else {
     marketPriceLabel.textContent = "Graded Comp";
-    conditionPriceLabel.textContent = "Offer Value";
+    conditionPriceLabel.textContent = "Calculated Offer";
 
     marketPrice.textContent = "Use eBay sold comps";
     conditionPrice.textContent = "Enter graded comp";
