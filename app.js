@@ -324,7 +324,7 @@ function displayCards(cards) {
 function getRarityDisplay(rarity) {
   const rarityMap = {
     "Rare Ultra": {
-      icon: "/rarities/rare-ultra.svg",
+      icon: "/assets/rarities/rare-ultra.svg",
       label: "Rare Ultra"
     }
   };
@@ -334,12 +334,6 @@ function getRarityDisplay(rarity) {
     label: rarity || "Unknown"
   };
 }
-function openCardDetail(card) {
-  selectedCardMarketPrice = getCardMarketPrice(card);
-
-  selectedCardImage.src =
-    card.images.large || card.images.small;
-
   selectedCardImage.alt = card.name;
   selectedCardName.textContent = card.name;
   selectedCardSet.textContent = card.set?.name || "Unknown Set";
@@ -347,18 +341,18 @@ function openCardDetail(card) {
   selectedCardNumber.textContent =
     `Card ${card.number || "?"}/${card.set?.printedTotal || "?"}`;
 
- const rarityDisplay = getRarityDisplay(card.rarity);
+const rarityDisplay = getRarityDisplay(card.rarity);
 
 selectedCardRarity.innerHTML = rarityDisplay.icon
   ? `
-    <img
-      src="${rarityDisplay.icon}"
-      alt=""
-      class="rarity-icon"
-    >
-    <span>${rarityDisplay.label}</span>
-  `
-  : `<span>${rarityDisplay.label}</span>`;
+      <img
+        class="rarity-icon"
+        src="${rarityDisplay.icon}"
+        alt="${rarityDisplay.label}"
+      >
+      <span>${rarityDisplay.label}</span>
+    `
+  : `<span>${rarityDisplay.label}</span>`; 
 
   ebaySoldButton.onclick = () => {
     const cardType = cardTypeSelect.value;
