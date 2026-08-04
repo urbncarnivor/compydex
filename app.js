@@ -81,7 +81,7 @@ addTheirCardButton.addEventListener("click", () => {
     behavior: "smooth",
     block: "start"
   });
-
+});
 closeTradeButton.addEventListener("click", () => {
   tradePanel.classList.add("hidden");
 });
