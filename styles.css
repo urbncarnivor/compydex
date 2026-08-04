@@ -406,3 +406,14 @@ footer {
   transform: translateY(-2px);
   box-shadow: 0 6px 18px rgba(0, 100, 210, 0.35);
 }
+.rarity-icon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+}
+
+#selectedCardRarity {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
