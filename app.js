@@ -630,6 +630,31 @@ function addCardToTrade(card) {
 
   activeTradeSide = null;
 }
+const TRADE_CONDITION_MULTIPLIERS = {
+  NM: 1,
+  LP: 0.9,
+  MP: 0.75,
+  HP: 0.6,
+  DMG: 0.4
+};
+
+function getTradeCardBaseValue(card) {
+  if (card.cardType === "graded") {
+    return Number(card.gradedComp) || 0;
+  }
+
+  const multiplier =
+    TRADE_CONDITION_MULTIPLIERS[card.condition] ?? 1;
+
+  return card.rawPrice * multiplier;
+}
+
+function getTradeCardAdjustedValue(card) {
+  const baseValue = getTradeCardBaseValue(card);
+  const percentage = Number(card.percentage) || 0;
+
+  return baseValue * (percentage / 100);
+}
 function updateTradeDisplay() {
   const renderSide = (cards, container) => {
     if (cards.length === 0) {
@@ -648,7 +673,7 @@ function updateTradeDisplay() {
 
           <div>
             <strong>${card.name}</strong>
-            <p>${formatMoney(card.price)}</p>
+           <p>${formatMoney(getTradeCardAdjustedValue(card))}</p> 
           </div>
         </div>
       `)
@@ -658,15 +683,17 @@ function updateTradeDisplay() {
   renderSide(yourTradeCardData, yourTradeCards);
   renderSide(theirTradeCardData, theirTradeCards);
 
-  const yourTotal = yourTradeCardData.reduce(
-    (total, card) => total + card.price,
-    0
-  );
+ const yourTotal = yourTradeCardData.reduce(
+  (total, card) =>
+    total + getTradeCardAdjustedValue(card),
+  0
+);
 
-  const theirTotal = theirTradeCardData.reduce(
-    (total, card) => total + card.price,
-    0
-  );
+ const theirTotal = theirTradeCardData.reduce(
+  (total, card) =>
+    total + getTradeCardAdjustedValue(card),
+  0
+);
 
   const difference = yourTotal - theirTotal;
 
