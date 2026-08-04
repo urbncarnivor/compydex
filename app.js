@@ -32,9 +32,15 @@ const ebaySoldButton = document.getElementById("ebaySoldButton");
 const tradeModeButton = document.getElementById("tradeModeButton");
 const tradePanel = document.getElementById("tradePanel");
 const closeTradeButton = document.getElementById("closeTradeButton");
+const addYourCardButton =
+  document.getElementById("addYourCardButton");
+
+const addTheirCardButton =
+  document.getElementById("addTheirCardButton");
 
 
 let selectedCardMarketPrice = 0;
+let activeTradeSide = null;
 
 scanButton.addEventListener("click", () => {
   alert("Camera scanner is next.");
