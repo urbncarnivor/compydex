@@ -321,7 +321,25 @@ function displayCards(cards) {
     searchResults.appendChild(cardElement);
   });
 }
+function getRaritySymbol(rarity) {
+  const raritySymbols = {
+    Common: "●",
+    Uncommon: "◆",
+    Rare: "★",
+    "Double Rare": "★★",
+    "ACE SPEC Rare": "✦",
+    "Illustration Rare": "★",
+    "Ultra Rare": "☆☆",
+    "Rare Ultra": "☆☆",
+    "Special Illustration Rare": "★★",
+    "Hyper Rare": "★★★",
+    "Shiny Rare": "☆",
+    "Shiny Ultra Rare": "☆☆",
+    "Promo": "★"
+  };
 
+  return raritySymbols[rarity] || "★";
+}
 function openCardDetail(card) {
   selectedCardMarketPrice = getCardMarketPrice(card);
 
@@ -335,8 +353,11 @@ function openCardDetail(card) {
   selectedCardNumber.textContent =
     `Card ${card.number || "?"}/${card.set?.printedTotal || "?"}`;
 
-  selectedCardRarity.textContent =
-    `Rarity: ${card.rarity || "Unknown"}`;
+  const rarityName = card.rarity || "Unknown";
+const raritySymbol = getRaritySymbol(rarityName);
+
+selectedCardRarity.textContent =
+  `${raritySymbol} ${rarityName}`;
 
   ebaySoldButton.onclick = () => {
     const cardType = cardTypeSelect.value;
