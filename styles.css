@@ -420,3 +420,130 @@ footer {
   align-items: center;
   gap: 4px;
 }
+.trade-panel {
+  margin-top: 24px;
+  padding: 20px;
+  background: rgba(31, 41, 55, 0.95);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 18px;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.28);
+}
+
+.trade-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.trade-header h2 {
+  margin: 0;
+}
+
+#closeTradeButton {
+  width: auto;
+  min-height: auto;
+  padding: 10px 14px;
+  background: #374151;
+  border-radius: 10px;
+}
+
+.trade-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.trade-side {
+  min-width: 0;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.75);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
+}
+
+.trade-side h3 {
+  margin: 0 0 12px;
+}
+
+.trade-side > button {
+  min-height: auto;
+  margin-bottom: 14px;
+  padding: 11px 14px;
+  border-radius: 10px;
+}
+
+.trade-card-list {
+  display: grid;
+  gap: 10px;
+}
+
+.trade-card-item {
+  display: grid;
+  grid-template-columns: 58px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: #111827;
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 12px;
+}
+
+.trade-card-item img {
+  width: 58px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 6px;
+}
+
+.trade-card-item strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.trade-card-item p {
+  margin: 0;
+  color: #a78bfa;
+  font-weight: 700;
+}
+
+.trade-empty {
+  margin: 4px 0 12px;
+  color: #94a3b8;
+}
+
+.trade-total {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(148, 163, 184, 0.18);
+}
+
+.trade-summary {
+  margin-top: 16px;
+  padding: 16px;
+  text-align: center;
+  background: rgba(15, 23, 42, 0.8);
+  border-radius: 14px;
+}
+
+.trade-summary strong {
+  display: block;
+  margin: 4px 0;
+  font-size: 24px;
+  color: #a78bfa;
+}
+
+.trade-summary p {
+  margin: 4px 0 0;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .trade-grid {
+    grid-template-columns: 1fr;
+  }
+}
