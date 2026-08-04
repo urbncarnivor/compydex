@@ -321,24 +321,18 @@ function displayCards(cards) {
     searchResults.appendChild(cardElement);
   });
 }
-function getRaritySymbol(rarity) {
-  const raritySymbols = {
-    Common: "●",
-    Uncommon: "◆",
-    Rare: "★",
-    "Double Rare": "★★",
-    "ACE SPEC Rare": "✦",
-    "Illustration Rare": "★",
-    "Ultra Rare": "☆☆",
-    "Rare Ultra": "☆☆",
-    "Special Illustration Rare": "★★",
-    "Hyper Rare": "★★★",
-    "Shiny Rare": "☆",
-    "Shiny Ultra Rare": "☆☆",
-    "Promo": "★"
+function getRarityDisplay(rarity) {
+  const rarityMap = {
+    "Rare Ultra": {
+      icon: "/rarities/rare-ultra.svg",
+      label: "Rare Ultra"
+    }
   };
 
-  return raritySymbols[rarity] || "★";
+  return rarityMap[rarity] || {
+    icon: "",
+    label: rarity || "Unknown"
+  };
 }
 function openCardDetail(card) {
   selectedCardMarketPrice = getCardMarketPrice(card);
@@ -353,11 +347,18 @@ function openCardDetail(card) {
   selectedCardNumber.textContent =
     `Card ${card.number || "?"}/${card.set?.printedTotal || "?"}`;
 
-  const rarityName = card.rarity || "Unknown";
-const raritySymbol = getRaritySymbol(rarityName);
+ const rarityDisplay = getRarityDisplay(card.rarity);
 
-selectedCardRarity.textContent =
-  `${raritySymbol} ${rarityName}`;
+selectedCardRarity.innerHTML = rarityDisplay.icon
+  ? `
+    <img
+      src="${rarityDisplay.icon}"
+      alt=""
+      class="rarity-icon"
+    >
+    <span>${rarityDisplay.label}</span>
+  `
+  : `<span>${rarityDisplay.label}</span>`;
 
   ebaySoldButton.onclick = () => {
     const cardType = cardTypeSelect.value;
