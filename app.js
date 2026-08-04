@@ -604,10 +604,21 @@ function displayRecentCards() {
 displayRecentCards();
 function addCardToTrade(card) {
   const cardData = {
-    name: card.name,
-    image: card.images.small,
-    price: getCardMarketPrice(card)
-  };
+  name: card.name,
+  number: card.number,
+  setName: card.set?.name || "",
+  image: card.images.small,
+
+  cardType: "raw",
+  rawPrice: getCardMarketPrice(card),
+  condition: "NM",
+
+  gradingCompany: "PSA",
+  grade: "10",
+  gradedComp: 0,
+
+  percentage: activeTradeSide === "their" ? 80 : 100
+};
 
   if (activeTradeSide === "your") {
     yourTradeCardData.push(cardData);
