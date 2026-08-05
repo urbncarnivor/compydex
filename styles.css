@@ -596,6 +596,7 @@ footer {
   min-width: 0;
   font-size: 13px;
   line-height: 1.25;
+  padding-left:8px;
 }
 
 .trade-card-details strong {
@@ -800,4 +801,7 @@ footer {
   color: #94a3b8;
   font-size: 13px;
   line-height: 1.4;
+}
+.trade-card-details {
+  padding-left: 8px;
 }
