@@ -43,16 +43,18 @@
 
 <section id="searchPanel" class="search-panel">
   <form id="searchForm" onsubmit="return false;">
-     <label for="searchInput">Search by card name or number</label>
+    <label for="searchInput">
+  Search with card name and first 3 digits
+</label>
 
-    <div class="search-row">
-      <input
-        id="searchInput"
-        type="search"
-        placeholder="Example: Charizard V 154"
-        autocomplete="off"
-        required
-      >
+<div class="search-row">
+  <input
+    id="searchInput"
+    type="search"
+    placeholder="Charizard V 154"
+    autocomplete="off"
+    required
+  >
 
     <button id="submitSearchButton" type="submit">
   Search
@@ -60,7 +62,11 @@
     </div>
   </form>
 
-  <p id="searchStatus"></p>
+  <p class="search-help">
+  Enter the card name and the first 3 digits of the card number.
+</p>
+
+<p id="searchStatus"></p>
 
   <div id="searchResults" class="search-results"></div>
 </section>
