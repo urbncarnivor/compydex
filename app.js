@@ -59,6 +59,8 @@ let selectedCardMarketPrice = 0;
 let activeTradeSide = null;
 let yourTradeCardData = [];
 let theirTradeCardData = [];
+let yourCashAdjustment = 0;
+let theirCashAdjustment = 0;
 
 scanButton.addEventListener("click", () => {
   alert("Camera scanner is next.");
@@ -731,6 +733,58 @@ container.innerHTML = cards
 
   renderSide(yourTradeCardData, yourTradeCards);
   renderSide(theirTradeCardData, theirTradeCards);
+  yourTradeCards.insertAdjacentHTML(
+  "beforeend",
+  `
+    <div class="trade-cash">
+      <label>
+        Cash
+        <input
+          class="trade-cash-input"
+          data-side="your"
+          type="number"
+          min="0"
+          step="1"
+          value="${yourCashAdjustment}"
+        >
+      </label>
+    </div>
+`
+);
+
+theirTradeCards.insertAdjacentHTML(
+  "beforeend",
+  `
+    <div class="trade-cash">
+      <label>
+        Cash
+        <input
+          class="trade-cash-input"
+          data-side="their"
+          type="number"
+          min="0"
+          step="1"
+          value="${theirCashAdjustment}"
+        >
+      </label>
+    </div>
+`
+);
+  document
+  .querySelectorAll(".trade-cash-input")
+  .forEach((input) => {
+    input.addEventListener("input", () => {
+      const value = Number(input.value) || 0;
+
+      if (input.dataset.side === "your") {
+        yourCashAdjustment = value;
+      } else {
+        theirCashAdjustment = value;
+      }
+
+      updateTradeDisplay();
+    });
+  });
 document
   .querySelectorAll(".trade-condition-select")
   .forEach((select) => {
@@ -783,10 +837,20 @@ document
   0
 );
 
-  const difference = yourTotal - theirTotal;
+  const adjustedYourTotal =
+  yourTotal + yourCashAdjustment;
 
-  yourTradeTotal.textContent = formatMoney(yourTotal);
-  theirTradeTotal.textContent = formatMoney(theirTotal);
+const adjustedTheirTotal =
+  theirTotal + theirCashAdjustment;
+
+const difference =
+  adjustedYourTotal - adjustedTheirTotal;
+
+  yourTradeTotal.textContent =
+  formatMoney(adjustedYourTotal);
+
+theirTradeTotal.textContent =
+  formatMoney(adjustedTheirTotal);
   tradeDifference.textContent =
     formatMoney(Math.abs(difference));
 
