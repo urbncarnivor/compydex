@@ -649,10 +649,15 @@ function getTradeCardBaseValue(card) {
     return Number(card.gradedComp) || 0;
   }
 
+  const rawBasePrice =
+    card.priceSource === "ebay"
+      ? Number(card.ebayComp) || 0
+      : card.rawPrice;
+
   const multiplier =
     TRADE_CONDITION_MULTIPLIERS[card.condition] ?? 1;
 
-  return card.rawPrice * multiplier;
+  return rawBasePrice * multiplier;
 }
 
 function getTradeCardAdjustedValue(card) {
