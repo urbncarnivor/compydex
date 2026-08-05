@@ -677,7 +677,33 @@ container.innerHTML = cards
         <span>
           Market: ${formatMoney(card.rawPrice)}
         </span>
+<label>
+  Condition
+  <select
+    class="trade-condition-select"
+    data-card-index="${index}"
+  >
+    <option value="NM" ${card.condition === "NM" ? "selected" : ""}>
+      NM
+    </option>
 
+    <option value="LP" ${card.condition === "LP" ? "selected" : ""}>
+      LP
+    </option>
+
+    <option value="MP" ${card.condition === "MP" ? "selected" : ""}>
+      MP
+    </option>
+
+    <option value="HP" ${card.condition === "HP" ? "selected" : ""}>
+      HP
+    </option>
+
+    <option value="DMG" ${card.condition === "DMG" ? "selected" : ""}>
+      DMG
+    </option>
+  </select>
+</label>
         <label>
           Buy %
           <input
@@ -705,7 +731,25 @@ container.innerHTML = cards
 
   renderSide(yourTradeCardData, yourTradeCards);
   renderSide(theirTradeCardData, theirTradeCards);
+document
+  .querySelectorAll(".trade-condition-select")
+  .forEach((select) => {
+    select.addEventListener("change", () => {
+      const index = Number(select.dataset.cardIndex);
 
+      const card =
+        select.closest("#yourTradeCards")
+          ? yourTradeCardData[index]
+          : theirTradeCardData[index];
+
+      if (!card) {
+        return;
+      }
+
+      card.condition = select.value;
+      updateTradeDisplay();
+    });
+  });
  document
   .querySelectorAll(".trade-percentage-input")
   .forEach((input) => {
