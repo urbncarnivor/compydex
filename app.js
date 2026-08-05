@@ -677,6 +677,14 @@ function updateTradeDisplay() {
 container.innerHTML = cards
   .map((card, index) => `
     <div class="trade-card-item">
+  <button
+    type="button"
+    class="trade-remove-card"
+    data-card-index="${index}"
+    aria-label="Remove ${card.name} from trade"
+  >
+    ×
+  </button>
       <img
         src="${card.image}"
         alt="${card.name}"
@@ -907,6 +915,25 @@ theirTradeCards.insertAdjacentHTML(
     });
   });
 
+document
+  .querySelectorAll(".trade-remove-card")
+  .forEach((button) => {
+    button.addEventListener("click", () => {
+      const index = Number(button.dataset.cardIndex);
+
+      const isYourSide =
+        button.closest("#yourTradeCards");
+
+      if (isYourSide) {
+        yourTradeCardData.splice(index, 1);
+      } else {
+        theirTradeCardData.splice(index, 1);
+      }
+
+      updateTradeDisplay();
+    });
+  });
+  
   document
   .querySelectorAll(".trade-card-type-select")
   .forEach((select) => {
