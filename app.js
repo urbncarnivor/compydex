@@ -715,6 +715,41 @@ container.innerHTML = cards
     </option>
   </select>
 </label>
+<label>
+  Price Source
+  <select
+    class="trade-price-source-select"
+    data-card-index="${index}"
+  >
+    <option
+      value="tcg"
+      ${card.priceSource === "tcg" ? "selected" : ""}
+    >
+      TCG Market
+    </option>
+
+    <option
+      value="ebay"
+      ${card.priceSource === "ebay" ? "selected" : ""}
+    >
+      eBay Sold Comp
+    </option>
+  </select>
+</label>
+
+${card.priceSource === "ebay" ? `
+  <label>
+    eBay Comp
+    <input
+      class="trade-ebay-comp-input"
+      data-card-index="${index}"
+      type="number"
+      min="0"
+      step="0.01"
+      value="${card.ebayComp}"
+    >
+  </label>
+` : ""}
         <label>
           Buy %
           <input
@@ -779,7 +814,7 @@ theirTradeCards.insertAdjacentHTML(
     </div>
 `
 );
-  document
+ document
   .querySelectorAll(".trade-cash-input")
   .forEach((input) => {
     input.addEventListener("change", () => {
@@ -794,6 +829,47 @@ theirTradeCards.insertAdjacentHTML(
       updateTradeDisplay();
     });
   });
+
+document
+  .querySelectorAll(".trade-price-source-select")
+  .forEach((select) => {
+    select.addEventListener("change", () => {
+      const index = Number(select.dataset.cardIndex);
+
+      const card =
+        select.closest("#yourTradeCards")
+          ? yourTradeCardData[index]
+          : theirTradeCardData[index];
+
+      if (!card) {
+        return;
+      }
+
+      card.priceSource = select.value;
+      updateTradeDisplay();
+    });
+  });
+
+document
+  .querySelectorAll(".trade-ebay-comp-input")
+  .forEach((input) => {
+    input.addEventListener("change", () => {
+      const index = Number(input.dataset.cardIndex);
+
+      const card =
+        input.closest("#yourTradeCards")
+          ? yourTradeCardData[index]
+          : theirTradeCardData[index];
+
+      if (!card) {
+        return;
+      }
+
+      card.ebayComp = Number(input.value) || 0;
+      updateTradeDisplay();
+    });
+  });
+
 document
   .querySelectorAll(".trade-condition-select")
   .forEach((select) => {
@@ -813,10 +889,11 @@ document
       updateTradeDisplay();
     });
   });
- document
+
+document
   .querySelectorAll(".trade-percentage-input")
   .forEach((input) => {
-    input.addEventListener("input", () => {
+    input.addEventListener("change", () => {
       const index = Number(input.dataset.cardIndex);
       const percentage = Number(input.value) || 0;
 
