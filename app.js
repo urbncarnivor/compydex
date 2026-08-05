@@ -709,68 +709,124 @@ container.innerHTML = cards
     </option>
   </select>
 </label>
-<label>
-  Condition
-  <select
-    class="trade-condition-select"
-    data-card-index="${index}"
-  >
-    <option value="NM" ${card.condition === "NM" ? "selected" : ""}>
-      NM
-    </option>
-
-    <option value="LP" ${card.condition === "LP" ? "selected" : ""}>
-      LP
-    </option>
-
-    <option value="MP" ${card.condition === "MP" ? "selected" : ""}>
-      MP
-    </option>
-
-    <option value="HP" ${card.condition === "HP" ? "selected" : ""}>
-      HP
-    </option>
-
-    <option value="DMG" ${card.condition === "DMG" ? "selected" : ""}>
-      DMG
-    </option>
-  </select>
-</label>
-<label>
-  Price Source
-  <select
-    class="trade-price-source-select"
-    data-card-index="${index}"
-  >
-    <option
-      value="tcg"
-      ${card.priceSource === "tcg" ? "selected" : ""}
-    >
-      TCG Market
-    </option>
-
-    <option
-      value="ebay"
-      ${card.priceSource === "ebay" ? "selected" : ""}
-    >
-      eBay Sold Comp
-    </option>
-  </select>
-</label>
-
-${card.priceSource === "ebay" ? `
+${card.cardType === "raw" ? `
   <label>
-    eBay Comp
+    Condition
+    <select
+      class="trade-condition-select"
+      data-card-index="${index}"
+    >
+      <option value="NM" ${card.condition === "NM" ? "selected" : ""}>
+        NM
+      </option>
+
+      <option value="LP" ${card.condition === "LP" ? "selected" : ""}>
+        LP
+      </option>
+
+      <option value="MP" ${card.condition === "MP" ? "selected" : ""}>
+        MP
+      </option>
+
+      <option value="HP" ${card.condition === "HP" ? "selected" : ""}>
+        HP
+      </option>
+
+      <option value="DMG" ${card.condition === "DMG" ? "selected" : ""}>
+        DMG
+      </option>
+    </select>
+  </label>
+
+  <label>
+    Price Source
+    <select
+      class="trade-price-source-select"
+      data-card-index="${index}"
+    >
+      <option
+        value="tcg"
+        ${card.priceSource === "tcg" ? "selected" : ""}
+      >
+        TCG Market
+      </option>
+
+      <option
+        value="ebay"
+        ${card.priceSource === "ebay" ? "selected" : ""}
+      >
+        eBay Sold Comp
+      </option>
+    </select>
+  </label>
+
+  ${card.priceSource === "ebay" ? `
+    <label>
+      eBay Comp
+      <input
+        class="trade-ebay-comp-input"
+        data-card-index="${index}"
+        type="number"
+        min="0"
+        step="0.01"
+        value="${card.ebayComp}"
+      >
+    </label>
+  ` : ""}
+` : `
+  <label>
+    Grading Company
+    <select
+      class="trade-grading-company-select"
+      data-card-index="${index}"
+    >
+      <option value="PSA" ${card.gradingCompany === "PSA" ? "selected" : ""}>
+        PSA
+      </option>
+
+      <option value="BGS" ${card.gradingCompany === "BGS" ? "selected" : ""}>
+        BGS
+      </option>
+
+      <option value="CGC" ${card.gradingCompany === "CGC" ? "selected" : ""}>
+        CGC
+      </option>
+
+      <option value="SGC" ${card.gradingCompany === "SGC" ? "selected" : ""}>
+        SGC
+      </option>
+
+      <option value="TAG" ${card.gradingCompany === "TAG" ? "selected" : ""}>
+        TAG
+      </option>
+    </select>
+  </label>
+
+  <label>
+    Grade
     <input
-      class="trade-ebay-comp-input"
+      class="trade-grade-input"
+      data-card-index="${index}"
+      type="number"
+      min="1"
+      max="10"
+      step="0.5"
+      value="${card.grade}"
+    >
+  </label>
+
+  <label>
+    eBay Graded Comp
+    <input
+      class="trade-graded-comp-input"
       data-card-index="${index}"
       type="number"
       min="0"
       step="0.01"
-      value="${card.ebayComp}"
+      value="${card.gradedComp}"
     >
   </label>
-` : ""}
+`}
         <label>
           Buy %
           <input
