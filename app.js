@@ -560,6 +560,10 @@ function getRecentCards() {
 }
 
 function displayRecentCards() {
+  if (!recentCardsContainer) {
+    return;
+  }
+
   const recentCards = getRecentCards();
 
   if (recentCards.length === 0) {
