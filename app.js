@@ -613,6 +613,10 @@ function addCardToTrade(card) {
 
   cardType: "raw",
   rawPrice: getCardMarketPrice(card),
+    
+  priceSource: "tcg",
+  ebayComp: 0,
+    
   condition: "NM",
 
   gradingCompany: "PSA",
