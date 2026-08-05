@@ -686,27 +686,36 @@ footer {
 }
 
 .trade-remove-card {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 38px;
-  height: 38px;
-  min-height: 0;
-  padding: 0;
-  border: none;
-  border-radius: 9px;
-  background: #ef4444;
-  color: #ffffff;
-  font-size: 22px;
-  font-weight: 800;
-  line-height: 1;
-  box-shadow: 0 5px 14px rgba(239, 68, 68, 0.3);
-  z-index: 2;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    left: auto;
+
+    width: 30px;
+    height: 30px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 8px;
+
+    background: #ef4444;
+    color: white;
+
+    font-size: 18px;
+    font-weight: 700;
+    cursor: pointer;
+
+    z-index: 10;
+
+    transition: all .15s ease;
 }
 
 .trade-remove-card:hover {
-  background: #dc2626;
-  transform: scale(1.05);
+    background: #dc2626;
+    transform: scale(1.08);
 }
 
 .trade-remove-card:active {
@@ -715,4 +724,73 @@ footer {
 
 .trade-card-item > img {
   margin-left: 44px;
+}
+/* Final trade-card layout */
+
+.trade-card-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 88px minmax(0, 1fr);
+  align-items: start;
+  gap: 14px;
+  padding: 14px 48px 14px 14px;
+}
+
+.trade-card-item > img {
+  grid-column: 1;
+  grid-row: 1;
+  width: 88px;
+  height: auto;
+  max-height: none;
+  margin: 0;
+  align-self: start;
+}
+
+.trade-card-details {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  width: 100%;
+}
+
+.trade-card-details strong {
+  display: block;
+  padding-right: 4px;
+  font-size: 16px;
+}
+
+.trade-card-details input,
+.trade-card-details select {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.trade-remove-card {
+  top: 10px;
+  right: 10px;
+  left: auto;
+}
+
+@media (max-width: 700px) {
+  .trade-card-item {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 10px;
+    padding: 12px 44px 12px 12px;
+  }
+
+  .trade-card-item > img {
+    width: 72px;
+  }
+}
+
+@media (max-width: 430px) {
+  .trade-card-item {
+    grid-template-columns: 84px minmax(0, 1fr);
+  }
+
+  .trade-card-item > img {
+    width: 84px;
+  }
 }
