@@ -547,3 +547,137 @@ footer {
     grid-template-columns: 1fr;
   }
 }
+/* Trade Mode polish */
+
+.trade-panel {
+  width: min(760px, calc(100vw - 24px));
+  margin-left: 50%;
+  transform: translateX(-50%);
+}
+
+.trade-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.trade-side {
+  padding: 12px;
+}
+
+.trade-side > button {
+  width: 100%;
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  border: 1px solid #a78bfa;
+  color: #ffffff;
+  opacity: 1;
+}
+
+.trade-side > button:disabled {
+  background: #4c1d95;
+  border-color: #7c3aed;
+  color: #ffffff;
+  opacity: 0.75;
+}
+
+.trade-card-item {
+  grid-template-columns: 72px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  padding: 12px;
+}
+
+.trade-card-item img {
+  width: 72px;
+  height: auto;
+  max-height: 104px;
+}
+
+.trade-card-details {
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.trade-card-details strong {
+  font-size: 15px;
+  line-height: 1.1;
+}
+
+.trade-card-details label {
+  display: block;
+  margin-top: 7px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.trade-card-details input,
+.trade-card-details select,
+.trade-cash input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  margin-top: 3px;
+  padding: 7px 8px;
+  border: 1px solid #4b5563;
+  border-radius: 7px;
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+.trade-card-details p {
+  margin-top: 10px;
+  font-size: 15px;
+}
+
+.trade-cash {
+  margin-top: 10px;
+}
+
+.trade-cash label {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+@media (max-width: 700px) {
+  .trade-panel {
+    width: min(96vw, 620px);
+    padding: 14px;
+  }
+
+  .trade-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .trade-side {
+    padding: 10px;
+  }
+
+  .trade-card-item {
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: 8px;
+    padding: 9px;
+  }
+
+  .trade-card-item img {
+    width: 56px;
+  }
+
+  .trade-card-details {
+    font-size: 12px;
+  }
+
+  .trade-card-details strong {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 430px) {
+  .trade-grid {
+    grid-template-columns: 1fr;
+  }
+}
