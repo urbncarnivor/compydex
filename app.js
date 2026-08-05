@@ -688,6 +688,27 @@ container.innerHTML = cards
         <span>
           Market: ${formatMoney(card.rawPrice)}
         </span>
+        <label>
+  Card Type
+  <select
+    class="trade-card-type-select"
+    data-card-index="${index}"
+  >
+    <option
+      value="raw"
+      ${card.cardType === "raw" ? "selected" : ""}
+    >
+      Raw
+    </option>
+
+    <option
+      value="graded"
+      ${card.cardType === "graded" ? "selected" : ""}
+    >
+      Graded
+    </option>
+  </select>
+</label>
 <label>
   Condition
   <select
@@ -830,6 +851,26 @@ theirTradeCards.insertAdjacentHTML(
     });
   });
 
+  document
+  .querySelectorAll(".trade-card-type-select")
+  .forEach((select) => {
+    select.addEventListener("change", () => {
+      const index = Number(select.dataset.cardIndex);
+
+      const card =
+        select.closest("#yourTradeCards")
+          ? yourTradeCardData[index]
+          : theirTradeCardData[index];
+
+      if (!card) {
+        return;
+      }
+
+      card.cardType = select.value;
+      updateTradeDisplay();
+    });
+  });
+  
 document
   .querySelectorAll(".trade-price-source-select")
   .forEach((select) => {
