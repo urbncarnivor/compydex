@@ -773,7 +773,7 @@ theirTradeCards.insertAdjacentHTML(
   document
   .querySelectorAll(".trade-cash-input")
   .forEach((input) => {
-    input.addEventListener("input", () => {
+    input.addEventListener("change", () => {
       const value = Number(input.value) || 0;
 
       if (input.dataset.side === "your") {
