@@ -894,3 +894,9 @@ footer {
 .scanner-modal.hidden {
     display: none;
 }
+.scanner-preview {
+  width: 100%;
+  display: block;
+  border-radius: 16px;
+  object-fit: contain;
+}
