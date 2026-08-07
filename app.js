@@ -1091,6 +1091,14 @@ async function openScanner() {
   const scannerVideo =
     document.getElementById("scannerVideo");
 
+  const scannerStatus =
+    document.getElementById("scannerStatus");
+
+  if (scannerStatus) {
+    scannerStatus.classList.remove("hidden");
+    scannerStatus.textContent = "Starting camera...";
+  }
+
   try {
     scannerStream =
       await navigator.mediaDevices.getUserMedia({
@@ -1120,10 +1128,18 @@ async function openScanner() {
       });
     }
 
+    if (scannerStatus) {
+      scannerStatus.classList.add("hidden");
+    }
+
     scannerModal.classList.remove("hidden");
 
   } catch (error) {
     console.error("Camera error:", error);
+
+    if (scannerStatus) {
+      scannerStatus.classList.add("hidden");
+    }
 
     alert(
       "CompyDex could not access the camera.\n\n" +
@@ -1144,7 +1160,8 @@ function closeScanner() {
     }
 
     scannerVideo.srcObject = null;
-    scannerModal.classList.add("hidden");
+
+  scannerModal.classList.add("hidden");
 }
 
 document
