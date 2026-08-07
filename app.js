@@ -1081,6 +1081,51 @@ theirTradeTotal.textContent =
       )}`;
   }
 }
+
+let scannerStream = null;
+
 async function openScanner() {
-    alert("🚧 Scanner coming next!\n\nNext step: Camera access.");
+    const scannerModal = document.getElementById("scannerModal");
+    const scannerVideo = document.getElementById("scannerVideo");
+
+    try {
+        scannerStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+                facingMode: {
+                    ideal: "environment"
+                }
+            },
+            audio: false
+        });
+
+        scannerVideo.srcObject = scannerStream;
+        scannerModal.classList.remove("hidden");
+
+    } catch (error) {
+        console.error("Camera error:", error);
+
+        alert(
+            "CompyDex could not access the camera.\n\n" +
+            "Please allow camera permission and try again."
+        );
+    }
 }
+function closeScanner() {
+    const scannerModal = document.getElementById("scannerModal");
+    const scannerVideo = document.getElementById("scannerVideo");
+
+    if (scannerStream) {
+        scannerStream.getTracks().forEach((track) => {
+            track.stop();
+        });
+
+        scannerStream = null;
+    }
+
+    scannerVideo.srcObject = null;
+    scannerModal.classList.add("hidden");
+}
+
+document
+    .getElementById("cancelScanner")
+    .addEventListener("click", closeScanner);
