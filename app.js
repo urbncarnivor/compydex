@@ -1129,3 +1129,35 @@ function closeScanner() {
 document
     .getElementById("cancelScanner")
     .addEventListener("click", closeScanner);
+document
+  .getElementById("capturePhoto")
+  .addEventListener("click", () => {
+    const scannerVideo = document.getElementById("scannerVideo");
+    const scannerCanvas = document.getElementById("scannerCanvas");
+    const scannerPreview = document.getElementById("scannerPreview");
+
+    if (!scannerVideo.videoWidth || !scannerVideo.videoHeight) {
+      return;
+    }
+
+    scannerCanvas.width = scannerVideo.videoWidth;
+    scannerCanvas.height = scannerVideo.videoHeight;
+
+    const context = scannerCanvas.getContext("2d");
+
+    context.drawImage(
+      scannerVideo,
+      0,
+      0,
+      scannerCanvas.width,
+      scannerCanvas.height
+    );
+
+    const imageData =
+      scannerCanvas.toDataURL("image/jpeg", 0.92);
+
+    scannerPreview.src = imageData;
+
+    scannerVideo.classList.add("hidden");
+    scannerPreview.classList.remove("hidden");
+  });
