@@ -1132,10 +1132,34 @@ document
 document
   .getElementById("capturePhoto")
   .addEventListener("click", () => {
-    const scannerVideo = document.getElementById("scannerVideo");
-    const scannerCanvas = document.getElementById("scannerCanvas");
-    const scannerPreview = document.getElementById("scannerPreview");
+    const scannerVideo =
+      document.getElementById("scannerVideo");
 
+    const scannerCanvas =
+      document.getElementById("scannerCanvas");
+
+    const scannerPreview =
+      document.getElementById("scannerPreview");
+
+    const captureButton =
+      document.getElementById("capturePhoto");
+
+    const cancelButton =
+      document.getElementById("cancelScanner");
+
+    // If we're already showing a captured photo,
+    // this button acts as RETAKE.
+    if (!scannerPreview.classList.contains("hidden")) {
+      scannerPreview.classList.add("hidden");
+      scannerVideo.classList.remove("hidden");
+
+      captureButton.textContent = "📸 Capture";
+      cancelButton.textContent = "Cancel";
+
+      return;
+    }
+
+    // Otherwise, capture the live camera frame.
     if (!scannerVideo.videoWidth || !scannerVideo.videoHeight) {
       return;
     }
@@ -1160,4 +1184,7 @@ document
 
     scannerVideo.classList.add("hidden");
     scannerPreview.classList.remove("hidden");
+
+    captureButton.textContent = "↩ Retake";
+    cancelButton.textContent = "✓ Use Photo";
   });
