@@ -1085,30 +1085,51 @@ theirTradeTotal.textContent =
 let scannerStream = null;
 
 async function openScanner() {
-    const scannerModal = document.getElementById("scannerModal");
-    const scannerVideo = document.getElementById("scannerVideo");
+  const scannerModal =
+    document.getElementById("scannerModal");
 
-    try {
-        scannerStream = await navigator.mediaDevices.getUserMedia({
-            video: {
-                facingMode: {
-                    ideal: "environment"
-                }
-            },
-            audio: false
-        });
+  const scannerVideo =
+    document.getElementById("scannerVideo");
 
-        scannerVideo.srcObject = scannerStream;
-        scannerModal.classList.remove("hidden");
+  try {
+    scannerStream =
+      await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: {
+            ideal: "environment"
+          },
+          width: {
+            ideal: 1280
+          },
+          height: {
+            ideal: 720
+          }
+        },
+        audio: false
+      });
 
-    } catch (error) {
-        console.error("Camera error:", error);
+    scannerVideo.srcObject = scannerStream;
 
-        alert(
-            "CompyDex could not access the camera.\n\n" +
-            "Please allow camera permission and try again."
-        );
+    await scannerVideo.play();
+
+    if (scannerVideo.readyState < 2) {
+      await new Promise((resolve) => {
+        scannerVideo.onloadedmetadata = () => {
+          resolve();
+        };
+      });
     }
+
+    scannerModal.classList.remove("hidden");
+
+  } catch (error) {
+    console.error("Camera error:", error);
+
+    alert(
+      "CompyDex could not access the camera.\n\n" +
+      "Please allow camera permission and try again."
+    );
+  }
 }
 function closeScanner() {
     const scannerModal = document.getElementById("scannerModal");
