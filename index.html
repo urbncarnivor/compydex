@@ -242,7 +242,32 @@
     </footer>
 
   </main>
+<!-- Scanner Modal -->
+<div id="scannerModal" class="scanner-modal hidden">
 
+    <div class="scanner-window">
+
+        <video
+            id="scannerVideo"
+            autoplay
+            playsinline
+        ></video>
+
+        <div class="scanner-overlay"></div>
+
+        <div class="scanner-buttons">
+            <button id="capturePhoto" type="button">
+                📸 Capture
+            </button>
+
+            <button id="cancelScanner" type="button">
+                Cancel
+            </button>
+        </div>
+
+    </div>
+
+</div>
   <script src="app.js"></script>
 
 </body>
