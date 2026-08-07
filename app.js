@@ -1,4 +1,5 @@
 const scanButton = document.getElementById("scanButton");
+scanButton.addEventListener("click", openScanner);
 
 const searchPanel = document.getElementById("searchPanel");
 const searchForm = document.getElementById("searchForm");
@@ -1079,4 +1080,7 @@ theirTradeTotal.textContent =
         Math.abs(difference)
       )}`;
   }
+}
+async function openScanner() {
+    alert("🚧 Scanner coming next!\n\nNext step: Camera access.");
 }
