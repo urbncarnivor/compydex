@@ -805,3 +805,89 @@ footer {
 .trade-card-details {
   padding-left: 8px;
 }
+/* ===========================
+   Scanner
+=========================== */
+
+.hidden {
+    display: none;
+}
+
+.scanner-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.85);
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    z-index: 5000;
+}
+
+.scanner-window {
+    width: min(95vw, 500px);
+    position: relative;
+}
+
+#scannerVideo {
+    width: 100%;
+    border-radius: 16px;
+    background: black;
+}
+
+.scanner-overlay {
+    position: absolute;
+
+    top: 15%;
+    left: 10%;
+
+    width: 80%;
+    height: 55%;
+
+    border: 3px solid #9b5cff;
+    border-radius: 14px;
+
+    pointer-events: none;
+}
+
+.scanner-buttons {
+
+    margin-top: 16px;
+
+    display: flex;
+    gap: 12px;
+}
+
+#capturePhoto,
+#cancelScanner {
+
+    flex: 1;
+
+    padding: 14px;
+
+    border: none;
+    border-radius: 10px;
+
+    cursor: pointer;
+
+    font-size: 16px;
+    font-weight: 700;
+}
+
+#capturePhoto {
+
+    background: linear-gradient(
+        90deg,
+        #7c3aed,
+        #9b5cff
+    );
+
+    color: white;
+}
+
+#cancelScanner {
+
+    background: #444;
+    color: white;
+}
