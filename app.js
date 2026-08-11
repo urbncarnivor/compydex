@@ -1178,13 +1178,46 @@ const autoModeButton =
 
 manualModeButton.addEventListener("click", () => {
   scannerMode = "manual";
+  stopAutoCapture();
 
   manualModeButton.classList.add("active");
   autoModeButton.classList.remove("active");
 });
+let autoCaptureTimer = null;
 
+function stopAutoCapture() {
+  if (autoCaptureTimer) {
+    clearInterval(autoCaptureTimer);
+    autoCaptureTimer = null;
+  }
+}
 autoModeButton.addEventListener("click", () => {
   scannerMode = "auto";
+  stopAutoCapture();
+
+const scannerVideo =
+  document.getElementById("scannerVideo");
+
+const scannerPreview =
+  document.getElementById("scannerPreview");
+
+autoCaptureTimer = setInterval(() => {
+  if (scannerMode !== "auto") {
+    stopAutoCapture();
+    return;
+  }
+
+  if (!scannerPreview.classList.contains("hidden")) {
+    stopAutoCapture();
+    return;
+  }
+
+  if (!scannerVideo.videoWidth || !scannerVideo.videoHeight) {
+    return;
+  }
+
+  console.log("Auto mode checking frame...");
+}, 500);
 
   autoModeButton.classList.add("active");
   manualModeButton.classList.remove("active");
