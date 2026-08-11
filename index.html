@@ -247,24 +247,28 @@
 
     <div class="scanner-window">
 
-        <video
-            id="scannerVideo"
-            autoplay
-            playsinline
-        ></video>
+        <div class="scanner-camera-frame">
 
-<canvas
+  <video
+    id="scannerVideo"
+    autoplay
+    playsinline
+  ></video>
+
+  <canvas
     id="scannerCanvas"
     class="hidden"
-></canvas>
+  ></canvas>
 
-<img
+  <img
     id="scannerPreview"
     class="scanner-preview hidden"
     alt="Captured card preview"
->
+  >
 
-<div class="scanner-overlay"></div>
+  <div class="scanner-overlay"></div>
+
+</div>
         <div id="scannerStatus" class="scanner-status">
   Starting camera...
 </div>
