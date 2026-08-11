@@ -847,16 +847,21 @@ box-sizing: border-box;
 .scanner-overlay {
     position: absolute;
 
-    top: 15%;
-    left: 10%;
+    top: 5%;
+    left: 50%;
+    transform: translateX(-50%);
 
-    width: 80%;
-    height: 55%;
+    width: 72%;
+    aspect-ratio: 2.5 / 3.5;
+    height: auto;
+    max-height: 45dvh;
 
     border: 3px solid #9b5cff;
     border-radius: 14px;
 
+    box-sizing: border-box;
     pointer-events: none;
+    z-index: 10;
 }
 
 .scanner-buttons {
