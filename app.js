@@ -1216,7 +1216,64 @@ autoCaptureTimer = setInterval(() => {
     return;
   }
 
-  console.log("Auto mode checking frame...");
+  const scannerCanvas =
+  document.getElementById("scannerCanvas");
+
+const context =
+  scannerCanvas.getContext("2d", {
+    willReadFrequently: true
+  });
+
+const sampleWidth = 80;
+const sampleHeight = 112;
+
+scannerCanvas.width = sampleWidth;
+scannerCanvas.height = sampleHeight;
+
+context.drawImage(
+  scannerVideo,
+  0,
+  0,
+  sampleWidth,
+  sampleHeight
+);
+
+const currentFrame =
+  context.getImageData(
+    0,
+    0,
+    sampleWidth,
+    sampleHeight
+  );
+
+if (!window.lastAutoFrame) {
+  window.lastAutoFrame = currentFrame;
+  return;
+}
+
+let difference = 0;
+
+for (
+  let i = 0;
+  i < currentFrame.data.length;
+  i += 16
+) {
+  difference += Math.abs(
+    currentFrame.data[i] -
+    window.lastAutoFrame.data[i]
+  );
+}
+
+window.lastAutoFrame = currentFrame;
+
+const movementScore =
+  difference /
+  (currentFrame.data.length / 16);
+
+console.log(
+  "Auto movement score:",
+  movementScore
+);
 }, 500);
 
   autoModeButton.classList.add("active");
