@@ -1270,11 +1270,41 @@ window.lastAutoFrame = currentFrame;
 const movementScore =
   difference /
   (currentFrame.data.length / 16);
-  if (movementScore <= 7.5) {
+
+// Estimate the overall brightness of the frame.
+// This gives Auto mode a basic "something usable is here" check.
+let brightnessTotal = 0;
+let brightnessSamples = 0;
+
+for (let i = 0; i < currentFrame.data.length; i += 4) {
+  brightnessTotal +=
+    (
+      currentFrame.data[i] +
+      currentFrame.data[i + 1] +
+      currentFrame.data[i + 2]
+    ) / 3;
+
+  brightnessSamples += 1;
+}
+
+const brightness =
+  brightnessTotal / brightnessSamples;
+
+const cardLikelyPresent =
+  brightness > 45 &&
+  brightness < 220;
+
+// Allow normal handheld movement.
+// Require two good checks before taking the picture.
+if (
+  cardLikelyPresent &&
+  movementScore <= 8.5
+) {
   stableFrameCount += 1;
 } else {
   stableFrameCount = 0;
 }
+
 if (stableFrameCount >= 2) {
   stableFrameCount = 0;
   stopAutoCapture();
