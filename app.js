@@ -1296,13 +1296,26 @@ const cardLikelyPresent =
 
 // Allow normal handheld movement.
 // Require two good checks before taking the picture.
-if (
-  cardLikelyPresent &&
-  movementScore <= 8.5
-) {
-  stableFrameCount += 1;
+if (cardLikelyPresent) {
+  if (movementScore <= 14) {
+    stableFrameCount += 1;
+  } else {
+    stableFrameCount = Math.max(
+      0,
+      stableFrameCount - 1
+    );
+  }
 } else {
   stableFrameCount = 0;
+}
+
+if (stableFrameCount >= 2) {
+  stableFrameCount = 0;
+  stopAutoCapture();
+
+  document
+    .getElementById("capturePhoto")
+    .click();
 }
 
 if (stableFrameCount >= 2) {
@@ -1321,7 +1334,7 @@ if (scannerStatus) {
   scannerStatus.textContent =
     `Movement: ${movementScore.toFixed(1)}`;
 }
-}, 500);
+}, 250);
 
   autoModeButton.classList.add("active");
   manualModeButton.classList.remove("active");
