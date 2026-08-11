@@ -830,8 +830,27 @@ box-sizing: border-box;
 
 .scanner-window {
     width: min(95vw, 500px);
-    max-height: calc(100dvh - 32px);
+    height: calc(100dvh - 32px);
+
+    display: flex;
+    flex-direction: column;
+
     position: relative;
+}
+
+.scanner-camera-frame {
+    position: relative;
+    flex: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 0;
+    overflow: hidden;
+
+    border-radius: 16px;
+    background: black;
 }
 
 #scannerVideo {
@@ -869,11 +888,14 @@ box-sizing: border-box;
 }
 
 .scanner-buttons {
-
-    margin-top: 16px;
-
     display: flex;
     gap: 12px;
+
+    flex-shrink: 0;
+
+    width: 100%;
+    padding-top: 12px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
 }
 
 #capturePhoto,
@@ -911,12 +933,19 @@ box-sizing: border-box;
 .scanner-modal.hidden {
     display: none;
 }
+
 .scanner-preview {
-  width: 100%;
-  display: block;
-  border-radius: 16px;
-  object-fit: contain;
+    width: 100%;
+    height: 100%;
+
+    display: block;
+
+    object-fit: contain;
+    object-position: center;
+
+    border-radius: 16px;
 }
+
 .scanner-status {
   position: absolute;
   top: 50%;
