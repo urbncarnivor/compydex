@@ -1165,11 +1165,10 @@ function closeScanner() {
 }
 
 document
-    .getElementById("cancelScanner")
-    .addEventListener("click", closeScanner);
-document
-  .getElementById("capturePhoto")
-  let scannerMode = "manual";
+  .getElementById("cancelScanner")
+  .addEventListener("click", closeScanner);
+
+let scannerMode = "manual";
 
 const manualModeButton =
   document.getElementById("manualModeButton");
@@ -1190,6 +1189,9 @@ autoModeButton.addEventListener("click", () => {
   autoModeButton.classList.add("active");
   manualModeButton.classList.remove("active");
 });
+
+document
+  .getElementById("capturePhoto")
   .addEventListener("click", () => {
     const scannerVideo =
       document.getElementById("scannerVideo");
@@ -1206,7 +1208,7 @@ autoModeButton.addEventListener("click", () => {
     const cancelButton =
       document.getElementById("cancelScanner");
 
-    // If we're already showing a captured photo,
+    // If we're showing a captured photo,
     // this button acts as RETAKE.
     if (!scannerPreview.classList.contains("hidden")) {
       scannerPreview.classList.add("hidden");
@@ -1218,7 +1220,7 @@ autoModeButton.addEventListener("click", () => {
       return;
     }
 
-    // Otherwise, capture the live camera frame.
+    // Capture the live camera frame.
     if (!scannerVideo.videoWidth || !scannerVideo.videoHeight) {
       return;
     }
@@ -1244,6 +1246,9 @@ autoModeButton.addEventListener("click", () => {
     scannerVideo.classList.add("hidden");
     scannerPreview.classList.remove("hidden");
 
+    captureButton.textContent = "↩ Retake";
+    cancelButton.textContent = "✓ Use Photo";
+  });
     captureButton.textContent = "↩ Retake";
     cancelButton.textContent = "✓ Use Photo";
   });
