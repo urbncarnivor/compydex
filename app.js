@@ -1169,6 +1169,27 @@ document
     .addEventListener("click", closeScanner);
 document
   .getElementById("capturePhoto")
+  let scannerMode = "manual";
+
+const manualModeButton =
+  document.getElementById("manualModeButton");
+
+const autoModeButton =
+  document.getElementById("autoModeButton");
+
+manualModeButton.addEventListener("click", () => {
+  scannerMode = "manual";
+
+  manualModeButton.classList.add("active");
+  autoModeButton.classList.remove("active");
+});
+
+autoModeButton.addEventListener("click", () => {
+  scannerMode = "auto";
+
+  autoModeButton.classList.add("active");
+  manualModeButton.classList.remove("active");
+});
   .addEventListener("click", () => {
     const scannerVideo =
       document.getElementById("scannerVideo");
