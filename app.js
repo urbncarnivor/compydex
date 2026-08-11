@@ -1249,6 +1249,3 @@ document
     captureButton.textContent = "↩ Retake";
     cancelButton.textContent = "✓ Use Photo";
   });
-    captureButton.textContent = "↩ Retake";
-    cancelButton.textContent = "✓ Use Photo";
-  });
