@@ -1270,12 +1270,12 @@ window.lastAutoFrame = currentFrame;
 const movementScore =
   difference /
   (currentFrame.data.length / 16);
-  if (movementScore <= 6.5) {
+  if (movementScore <= 7.0) {
   stableFrameCount += 1;
 } else {
   stableFrameCount = 0;
 }
-if (stableFrameCount >= 3) {
+if (stableFrameCount >= 2) {
   stableFrameCount = 0;
   stopAutoCapture();
 
