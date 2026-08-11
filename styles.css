@@ -837,7 +837,7 @@ box-sizing: border-box;
 
 #scannerVideo {
     width: 100%;
-    max-height: 68dvh;
+    max-height: 52dvh;
     object-fit: contain;
     border-radius: 16px;
     background: black;
