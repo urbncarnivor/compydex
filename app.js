@@ -1270,10 +1270,14 @@ const movementScore =
   difference /
   (currentFrame.data.length / 16);
 
-console.log(
-  "Auto movement score:",
-  movementScore
-);
+const scannerStatus =
+  document.getElementById("scannerStatus");
+
+if (scannerStatus) {
+  scannerStatus.classList.remove("hidden");
+  scannerStatus.textContent =
+    `Movement: ${movementScore.toFixed(1)}`;
+}
 }, 500);
 
   autoModeButton.classList.add("active");
