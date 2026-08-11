@@ -887,6 +887,39 @@ box-sizing: border-box;
         0 0 18px rgba(155, 92, 255, 0.35);
 }
 
+.scanner-mode-toggle {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-shrink: 0;
+}
+
+.scanner-mode-button {
+    flex: 1;
+    padding: 10px 12px;
+
+    border: 1px solid #5b6475;
+    border-radius: 10px;
+
+    background: #1f2937;
+    color: white;
+
+    font-size: 14px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.scanner-mode-button.active {
+    background: linear-gradient(
+        90deg,
+        #7c3aed,
+        #9b5cff
+    );
+
+    border-color: transparent;
+}
+
 .scanner-buttons {
     display: flex;
     gap: 12px;
