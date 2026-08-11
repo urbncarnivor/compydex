@@ -118,7 +118,7 @@ footer {
   font-size: 14px;
 }
 .hidden {
-  display: none;
+    display: none !important;
 }
 
 .search-panel {
