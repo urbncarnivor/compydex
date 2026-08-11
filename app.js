@@ -1270,7 +1270,7 @@ window.lastAutoFrame = currentFrame;
 const movementScore =
   difference /
   (currentFrame.data.length / 16);
-  if (movementScore <= 7.0) {
+  if (movementScore <= 7.5) {
   stableFrameCount += 1;
 } else {
   stableFrameCount = 0;
