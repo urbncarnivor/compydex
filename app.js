@@ -1225,18 +1225,44 @@ document
       return;
     }
 
-    scannerCanvas.width = scannerVideo.videoWidth;
-    scannerCanvas.height = scannerVideo.videoHeight;
+    const videoWidth = scannerVideo.videoWidth;
+const videoHeight = scannerVideo.videoHeight;
 
-    const context = scannerCanvas.getContext("2d");
+const frameWidth = scannerVideo.clientWidth;
+const frameHeight = scannerVideo.clientHeight;
 
-    context.drawImage(
-      scannerVideo,
-      0,
-      0,
-      scannerCanvas.width,
-      scannerCanvas.height
-    );
+const videoRatio = videoWidth / videoHeight;
+const frameRatio = frameWidth / frameHeight;
+
+let sourceX = 0;
+let sourceY = 0;
+let sourceWidth = videoWidth;
+let sourceHeight = videoHeight;
+
+if (videoRatio > frameRatio) {
+  sourceWidth = videoHeight * frameRatio;
+  sourceX = (videoWidth - sourceWidth) / 2;
+} else {
+  sourceHeight = videoWidth / frameRatio;
+  sourceY = (videoHeight - sourceHeight) / 2;
+}
+
+scannerCanvas.width = Math.round(sourceWidth);
+scannerCanvas.height = Math.round(sourceHeight);
+
+const context = scannerCanvas.getContext("2d");
+
+context.drawImage(
+  scannerVideo,
+  sourceX,
+  sourceY,
+  sourceWidth,
+  sourceHeight,
+  0,
+  0,
+  scannerCanvas.width,
+  scannerCanvas.height
+);
 
     const imageData =
       scannerCanvas.toDataURL("image/jpeg", 0.92);
