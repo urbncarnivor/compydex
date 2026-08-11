@@ -1184,6 +1184,7 @@ manualModeButton.addEventListener("click", () => {
   autoModeButton.classList.remove("active");
 });
 let autoCaptureTimer = null;
+let stableFrameCount = 0;
 
 function stopAutoCapture() {
   if (autoCaptureTimer) {
@@ -1269,7 +1270,19 @@ window.lastAutoFrame = currentFrame;
 const movementScore =
   difference /
   (currentFrame.data.length / 16);
+  if (movementScore <= 6.5) {
+  stableFrameCount += 1;
+} else {
+  stableFrameCount = 0;
+}
+if (stableFrameCount >= 3) {
+  stableFrameCount = 0;
+  stopAutoCapture();
 
+  document
+    .getElementById("capturePhoto")
+    .click();
+}
 const scannerStatus =
   document.getElementById("scannerStatus");
 
