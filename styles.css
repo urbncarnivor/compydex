@@ -833,7 +833,6 @@ box-sizing: border-box;
     max-height: calc(100dvh - 32px);
     position: relative;
 }
-}
 
 #scannerVideo {
     width: 100%;
@@ -841,7 +840,6 @@ box-sizing: border-box;
     object-fit: contain;
     border-radius: 16px;
     background: black;
-}
 }
 
 .scanner-overlay {
