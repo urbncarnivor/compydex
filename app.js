@@ -1230,9 +1230,9 @@ const nameCrop = makeOcrCrop(
 const numberCrop = makeOcrCrop(
   scannerPreview,
   0.23,
-  0.79,
+  0.82,
   0.34,
-  0.08
+  0.06
 );
     
 numberCrop.style.position = "fixed";
