@@ -1347,22 +1347,6 @@ numberContext.putImageData(
   }
 })();
     
-    const scannedName =
-  nameText
-    .split("\n")[0]
-    .replace(/\s+\d{2,3}$/, "")
-    .trim();
-
-console.log(
-  "SCANNED NAME:",
-  scannedName
-);
-
-const matchingCards =
-  await searchCardsByName(scannedName);
-
-displayCards(matchingCards);
-
     cancelButton.textContent = "Cancel";
 
     closeScanner();
