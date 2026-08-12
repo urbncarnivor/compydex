@@ -1229,10 +1229,10 @@ const nameCrop = makeOcrCrop(
 // Bottom-left area: collector number
 const numberCrop = makeOcrCrop(
   scannerPreview,
-  0.14,
-  0.90,
-  0.40,
-  0.09
+  0.26,
+  0.77,
+  0.30,
+  0.08
 );
     
 numberCrop.style.position = "fixed";
