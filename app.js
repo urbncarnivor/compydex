@@ -1244,8 +1244,9 @@ const numberCrop = makeOcrCrop(
       await Tesseract.createWorker("eng");
 
     await numberWorker.setParameters({
-      tessedit_char_whitelist: "0123456789/",
-    });
+  tessedit_char_whitelist: "0123456789/",
+  tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+});
 
     const nameResult =
       await nameWorker.recognize(nameCrop);
