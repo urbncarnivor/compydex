@@ -1312,9 +1312,10 @@ numberContext.putImageData(
       await Tesseract.createWorker("eng");
 
     await numberWorker.setParameters({
-  tessedit_char_whitelist: "0123456789/",
-  tessedit_pageseg_mode: Tesseract.PSM.SINGLE_WORD,
-});
+      tessedit_char_whitelist: "0123456789/",
+      tessedit_pageseg_mode:
+        Tesseract.PSM.SINGLE_WORD,
+    });
 
     const nameResult =
       await nameWorker.recognize(nameCrop);
@@ -1337,6 +1338,22 @@ numberContext.putImageData(
       "\n\nNUMBER:\n" +
       numberText
     );
+
+    const scannedName =
+      nameText
+        .split("\n")[0]
+        .replace(/\s+\d{2,3}$/, "")
+        .trim();
+
+    console.log(
+      "SCANNED NAME:",
+      scannedName
+    );
+
+    const matchingCards =
+      await searchCardsByName(scannedName);
+
+    displayCards(matchingCards);
 
     await nameWorker.terminate();
     await numberWorker.terminate();
