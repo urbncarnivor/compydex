@@ -1427,11 +1427,14 @@ const scannerStatus =
 
 if (scannerStatus) {
   scannerStatus.classList.remove("hidden");
-  scannerStatus.textContent =
-  `Move: ${movementScore.toFixed(1)} | Detail: ${detailScore.toFixed(1)}
-T:${topDetail.toFixed(1)} B:${bottomDetail.toFixed(1)}
-L:${leftDetail.toFixed(1)} R:${rightDetail.toFixed(1)}`;
-}
+if (!cardLikelyPresent) {
+  scannerStatus.textContent = "Align card in frame";
+} else if (movementScore > 14) {
+  scannerStatus.textContent = "Hold steady";
+} else {
+  scannerStatus.textContent = "Card detected";
+}  
+
 }, 250);
 
   autoModeButton.classList.add("active");
