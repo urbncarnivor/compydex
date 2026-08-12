@@ -1229,10 +1229,10 @@ const nameCrop = makeOcrCrop(
 // Bottom-left area: collector number
 const numberCrop = makeOcrCrop(
   scannerPreview,
-  0.23,
-  0.82,
-  0.34,
-  0.06
+  0.26,
+  0.84,
+  0.11,
+  0.05
 );
     
 numberCrop.style.position = "fixed";
@@ -1255,7 +1255,7 @@ document.body.appendChild(numberCrop);
 
     await numberWorker.setParameters({
   tessedit_char_whitelist: "0123456789/",
-  tessedit_pageseg_mode: Tesseract.PSM.SINGLE_LINE,
+  tessedit_pageseg_mode: Tesseract.PSM.SINGLE_WORD,
 });
 
     const nameResult =
