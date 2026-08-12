@@ -1235,13 +1235,29 @@ const numberCrop = makeOcrCrop(
   0.09
 );
 
-Promise.all([
-  Tesseract.recognize(nameCrop, "eng"),
-  Tesseract.recognize(numberCrop, "eng"),
-])
-  .then(([nameResult, numberResult]) => {
-    const nameText = nameResult.data.text.trim();
-    const numberText = numberResult.data.text.trim();
+(async () => {
+  try {
+    const nameWorker =
+      await Tesseract.createWorker("eng");
+
+    const numberWorker =
+      await Tesseract.createWorker("eng");
+
+    await numberWorker.setParameters({
+      tessedit_char_whitelist: "0123456789/",
+    });
+
+    const nameResult =
+      await nameWorker.recognize(nameCrop);
+
+    const numberResult =
+      await numberWorker.recognize(numberCrop);
+
+    const nameText =
+      nameResult.data.text.trim();
+
+    const numberText =
+      numberResult.data.text.trim();
 
     console.log("NAME OCR:", nameText);
     console.log("NUMBER OCR:", numberText);
@@ -1252,11 +1268,15 @@ Promise.all([
       "\n\nNUMBER:\n" +
       numberText
     );
-  })
-  .catch((error) => {
+
+    await nameWorker.terminate();
+    await numberWorker.terminate();
+
+  } catch (error) {
     console.error("OCR ERROR:", error);
     alert("OCR failed. Check console.");
-  });
+  }
+})();
     searchCards("Diancie 86")
   .then((cards) => {
     displayCards(cards);
