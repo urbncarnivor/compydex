@@ -1166,7 +1166,28 @@ function closeScanner() {
 
 document
   .getElementById("cancelScanner")
-  .addEventListener("click", closeScanner);
+  .addEventListener("click", () => {
+    const scannerPreview =
+      document.getElementById("scannerPreview");
+
+    const cancelButton =
+      document.getElementById("cancelScanner");
+
+    // Normal live-camera state: this button is Cancel.
+    if (scannerPreview.classList.contains("hidden")) {
+      closeScanner();
+      return;
+    }
+
+    // Captured-photo state: this button is Use Photo.
+    window.compydexCapturedImage = scannerPreview.src;
+
+    cancelButton.textContent = "Cancel";
+
+    closeScanner();
+
+    console.log("Captured card image saved for identification.");
+  });
 
 let scannerMode = "manual";
 
