@@ -1181,6 +1181,7 @@ document
 
     // Captured-photo state: this button is Use Photo.
     window.compydexCapturedImage = scannerPreview.src;
+    searchCards("Diancie 83");
 
     cancelButton.textContent = "Cancel";
 
