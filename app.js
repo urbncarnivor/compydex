@@ -1220,19 +1220,19 @@ document
 // Top area: card name
 const nameCrop = makeOcrCrop(
   scannerPreview,
-  0.12,
-  0.00,
-  0.65,
-  0.16
+  0.18,
+  0.10,
+  0.58,
+  0.10
 );
 
 // Bottom-left area: collector number
 const numberCrop = makeOcrCrop(
   scannerPreview,
-  0.00,
-  0.82,
-  0.55,
-  0.18
+  0.16,
+  0.84,
+  0.34,
+  0.10
 );
 
 Promise.all([
