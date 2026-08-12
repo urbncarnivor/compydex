@@ -298,6 +298,44 @@ if (!response) {
   return cards;
 }
 
+async function searchCardsByName(name) {
+  const cleanName =
+    name.trim().toLowerCase();
+
+  const apiQuery =
+    `name:"${cleanName}"`;
+
+  const url =
+    `/api/cards?q=${encodeURIComponent(apiQuery)}`;
+
+  const response =
+    await fetch(url);
+
+  if (!response.ok) {
+    throw new Error(
+      "Could not search scanned card."
+    );
+  }
+
+  const result =
+    await response.json();
+
+  const cards =
+    result.data || [];
+
+  cards.sort((a, b) => {
+    const aDate =
+      a.set?.releaseDate || "";
+
+    const bDate =
+      b.set?.releaseDate || "";
+
+    return bDate.localeCompare(aDate);
+  });
+
+  return cards;
+}
+
 const PRICE_VARIANT_LABELS = {
   holofoil: "Holofoil",
   reverseHolofoil: "Reverse Holofoil",
