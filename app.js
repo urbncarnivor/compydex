@@ -1264,17 +1264,7 @@ numberContext.putImageData(
   0,
   0
 );
-    
-numberCrop.style.position = "fixed";
-numberCrop.style.top = "10px";
-numberCrop.style.left = "5vw";
-numberCrop.style.width = "90vw";
-numberCrop.style.height = "auto";
-numberCrop.style.zIndex = "99999";
-numberCrop.style.background = "white";
-
-document.body.appendChild(numberCrop);
-    
+       
 (async () => {
   try {
     const nameWorker =
