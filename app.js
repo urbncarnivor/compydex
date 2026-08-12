@@ -1254,19 +1254,16 @@ for (let i = 0; i < pixels.length; i += 4) {
     pixels[i + 1] * 0.587 +
     pixels[i + 2] * 0.114;
 
-  const value =
-    gray < 115 ? 0 : 255;
-
-  pixels[i] = value;
-  pixels[i + 1] = value;
-  pixels[i + 2] = value;
+  pixels[i] = gray;
+  pixels[i + 1] = gray;
+  pixels[i + 2] = gray;
 }
 
 numberContext.putImageData(
   numberImage,
   0,
   0
-);    
+);
     
 numberCrop.style.position = "fixed";
 numberCrop.style.top = "10px";
