@@ -1234,6 +1234,39 @@ const numberCrop = makeOcrCrop(
   0.11,
   0.05
 );
+
+const numberContext =
+  numberCrop.getContext("2d");
+
+const numberImage =
+  numberContext.getImageData(
+    0,
+    0,
+    numberCrop.width,
+    numberCrop.height
+  );
+
+const pixels = numberImage.data;
+
+for (let i = 0; i < pixels.length; i += 4) {
+  const gray =
+    pixels[i] * 0.299 +
+    pixels[i + 1] * 0.587 +
+    pixels[i + 2] * 0.114;
+
+  const value =
+    gray < 115 ? 0 : 255;
+
+  pixels[i] = value;
+  pixels[i + 1] = value;
+  pixels[i + 2] = value;
+}
+
+numberContext.putImageData(
+  numberImage,
+  0,
+  0
+);    
     
 numberCrop.style.position = "fixed";
 numberCrop.style.top = "10px";
