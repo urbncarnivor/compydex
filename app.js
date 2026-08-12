@@ -1346,14 +1346,22 @@ numberContext.putImageData(
     alert("OCR failed. Check console.");
   }
 })();
-    searchCards("Diancie 86")
-  .then((cards) => {
-    displayCards(cards);
-  })
-  .catch((error) => {
-    console.error(error);
-    alert(error.message);
-  });
+    
+    const scannedName =
+  nameText
+    .split("\n")[0]
+    .replace(/\s+\d{2,3}$/, "")
+    .trim();
+
+console.log(
+  "SCANNED NAME:",
+  scannedName
+);
+
+const matchingCards =
+  await searchCardsByName(scannedName);
+
+displayCards(matchingCards);
 
     cancelButton.textContent = "Cancel";
 
