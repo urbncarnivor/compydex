@@ -1181,6 +1181,24 @@ document
 
     // Captured-photo state: this button is Use Photo.
     window.compydexCapturedImage = scannerPreview.src;
+    Tesseract.recognize(
+  window.compydexCapturedImage,
+  "eng",
+  {
+    logger: (message) => {
+      console.log(message);
+    },
+  }
+)
+  .then(({ data: { text } }) => {
+    console.log("OCR RESULT:");
+    console.log(text);
+    alert(text);
+  })
+  .catch((error) => {
+    console.error("OCR ERROR:", error);
+    alert("OCR failed. Check console.");
+  });
     searchCards("Diancie 86")
   .then((cards) => {
     displayCards(cards);
