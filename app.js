@@ -1231,8 +1231,23 @@ const sampleHeight = 112;
 scannerCanvas.width = sampleWidth;
 scannerCanvas.height = sampleHeight;
 
+const videoWidth = scannerVideo.videoWidth;
+const videoHeight = scannerVideo.videoHeight;
+
+// Sample only the center portion of the camera,
+// roughly matching the purple card guide.
+const guideWidth = videoWidth * 0.55;
+const guideHeight = videoHeight * 0.72;
+
+const guideX = (videoWidth - guideWidth) / 2;
+const guideY = (videoHeight - guideHeight) / 2;
+
 context.drawImage(
   scannerVideo,
+  guideX,
+  guideY,
+  guideWidth,
+  guideHeight,
   0,
   0,
   sampleWidth,
@@ -1290,9 +1305,35 @@ for (let i = 0; i < currentFrame.data.length; i += 4) {
 const brightness =
   brightnessTotal / brightnessSamples;
 
+// Measure how much visual detail exists inside the card guide.
+// A real trading card should have plenty of light/dark variation.
+let detailTotal = 0;
+let detailSamples = 0;
+
+for (
+  let i = 0;
+  i < currentFrame.data.length - 16;
+  i += 16
+) {
+  const current =
+    currentFrame.data[i];
+
+  const next =
+    currentFrame.data[i + 16];
+
+  detailTotal += Math.abs(current - next);
+  detailSamples += 1;
+}
+
+const detailScore =
+  detailSamples > 0
+    ? detailTotal / detailSamples
+    : 0;
+
 const cardLikelyPresent =
   brightness > 45 &&
-  brightness < 220;
+  brightness < 220 &&
+  detailScore > 8;
 
 // Allow normal handheld movement.
 // Require two good checks before taking the picture.
@@ -1332,7 +1373,7 @@ const scannerStatus =
 if (scannerStatus) {
   scannerStatus.classList.remove("hidden");
   scannerStatus.textContent =
-    `Movement: ${movementScore.toFixed(1)}`;
+  `Movement: ${movementScore.toFixed(1)} | Detail: ${detailScore.toFixed(1)}`;
 }
 }, 250);
 
