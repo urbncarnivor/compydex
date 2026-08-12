@@ -1181,19 +1181,77 @@ document
 
     // Captured-photo state: this button is Use Photo.
     window.compydexCapturedImage = scannerPreview.src;
-    Tesseract.recognize(
-  window.compydexCapturedImage,
-  "eng",
-  {
-    logger: (message) => {
-      console.log(message);
-    },
-  }
-)
-  .then(({ data: { text } }) => {
-    console.log("OCR RESULT:");
-    console.log(text);
-    alert(text);
+    const makeOcrCrop = (
+  image,
+  xRatio,
+  yRatio,
+  widthRatio,
+  heightRatio
+) => {
+  const cropCanvas = document.createElement("canvas");
+
+  const scale = 3;
+
+  const sourceX = image.naturalWidth * xRatio;
+  const sourceY = image.naturalHeight * yRatio;
+  const sourceWidth = image.naturalWidth * widthRatio;
+  const sourceHeight = image.naturalHeight * heightRatio;
+
+  cropCanvas.width = sourceWidth * scale;
+  cropCanvas.height = sourceHeight * scale;
+
+  const cropContext = cropCanvas.getContext("2d");
+
+  cropContext.drawImage(
+    image,
+    sourceX,
+    sourceY,
+    sourceWidth,
+    sourceHeight,
+    0,
+    0,
+    cropCanvas.width,
+    cropCanvas.height
+  );
+
+  return cropCanvas;
+};
+
+// Top area: card name
+const nameCrop = makeOcrCrop(
+  scannerPreview,
+  0.12,
+  0.00,
+  0.65,
+  0.16
+);
+
+// Bottom-left area: collector number
+const numberCrop = makeOcrCrop(
+  scannerPreview,
+  0.00,
+  0.82,
+  0.55,
+  0.18
+);
+
+Promise.all([
+  Tesseract.recognize(nameCrop, "eng"),
+  Tesseract.recognize(numberCrop, "eng"),
+])
+  .then(([nameResult, numberResult]) => {
+    const nameText = nameResult.data.text.trim();
+    const numberText = numberResult.data.text.trim();
+
+    console.log("NAME OCR:", nameText);
+    console.log("NUMBER OCR:", numberText);
+
+    alert(
+      "NAME:\n" +
+      nameText +
+      "\n\nNUMBER:\n" +
+      numberText
+    );
   })
   .catch((error) => {
     console.error("OCR ERROR:", error);
