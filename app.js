@@ -1427,13 +1427,15 @@ const scannerStatus =
 
 if (scannerStatus) {
   scannerStatus.classList.remove("hidden");
-if (!cardLikelyPresent) {
-  scannerStatus.textContent = "Align card in frame";
-} else if (movementScore > 14) {
-  scannerStatus.textContent = "Hold steady";
-} else {
-  scannerStatus.textContent = "Card detected";
-}  
+
+  if (!cardLikelyPresent) {
+    scannerStatus.textContent = "Align card in frame";
+  } else if (movementScore > 14) {
+    scannerStatus.textContent = "Hold steady";
+  } else {
+    scannerStatus.textContent = "Card detected";
+  }
+}
 
 }, 250);
 
