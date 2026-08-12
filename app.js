@@ -1330,13 +1330,76 @@ const detailScore =
     ? detailTotal / detailSamples
     : 0;
 
+function getRegionDetail(xStart, yStart, xEnd, yEnd) {
+  let total = 0;
+  let samples = 0;
+
+  for (let y = yStart; y < yEnd; y += 2) {
+    for (let x = xStart; x < xEnd - 1; x += 2) {
+      const index =
+        (y * sampleWidth + x) * 4;
+
+      const nextIndex =
+        (y * sampleWidth + (x + 1)) * 4;
+
+      const current =
+        currentFrame.data[index];
+
+      const next =
+        currentFrame.data[nextIndex];
+
+      total += Math.abs(current - next);
+      samples += 1;
+    }
+  }
+
+  return samples > 0
+    ? total / samples
+    : 0;
+}
+
+const topDetail =
+  getRegionDetail(
+    0,
+    0,
+    sampleWidth,
+    Math.floor(sampleHeight * 0.25)
+  );
+
+const bottomDetail =
+  getRegionDetail(
+    0,
+    Math.floor(sampleHeight * 0.75),
+    sampleWidth,
+    sampleHeight
+  );
+
+const leftDetail =
+  getRegionDetail(
+    0,
+    0,
+    Math.floor(sampleWidth * 0.25),
+    sampleHeight
+  );
+
+const rightDetail =
+  getRegionDetail(
+    Math.floor(sampleWidth * 0.75),
+    0,
+    sampleWidth,
+    sampleHeight
+  );
+
 const cardLikelyPresent =
   brightness > 45 &&
   brightness < 220 &&
-  detailScore > 8;
+  detailScore > 8 &&
+  topDetail > 5 &&
+  bottomDetail > 5 &&
+  leftDetail > 5 &&
+  rightDetail > 5;
 
 // Allow normal handheld movement.
-// Require two good checks before taking the picture.
 if (cardLikelyPresent) {
   if (movementScore <= 14) {
     stableFrameCount += 1;
@@ -1358,22 +1421,16 @@ if (stableFrameCount >= 2) {
     .getElementById("capturePhoto")
     .click();
 }
-
-if (stableFrameCount >= 2) {
-  stableFrameCount = 0;
-  stopAutoCapture();
-
-  document
-    .getElementById("capturePhoto")
-    .click();
-}
+  
 const scannerStatus =
   document.getElementById("scannerStatus");
 
 if (scannerStatus) {
   scannerStatus.classList.remove("hidden");
   scannerStatus.textContent =
-  `Movement: ${movementScore.toFixed(1)} | Detail: ${detailScore.toFixed(1)}`;
+  `Move: ${movementScore.toFixed(1)} | Detail: ${detailScore.toFixed(1)}
+T:${topDetail.toFixed(1)} B:${bottomDetail.toFixed(1)}
+L:${leftDetail.toFixed(1)} R:${rightDetail.toFixed(1)}`;
 }
 }, 250);
 
