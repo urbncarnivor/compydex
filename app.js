@@ -63,9 +63,6 @@ let theirTradeCardData = [];
 let yourCashAdjustment = 0;
 let theirCashAdjustment = 0;
 
-scanButton.addEventListener("click", () => {
-  alert("Camera scanner is next.");
-});
 tradeModeButton.addEventListener("click", () => {
   tradePanel.classList.remove("hidden");
 
@@ -334,6 +331,42 @@ async function searchCardsByName(name) {
   });
 
   return cards;
+}
+
+function getScannedCollectorNumber(text) {
+  const match = text.match(/\d{1,4}(?:\s*\/\s*\d{1,4})?/);
+
+  return match
+    ? match[0].replace(/\s+/g, "")
+    : "";
+}
+
+async function searchScannedCard(name, numberText) {
+  const cleanName = name.trim();
+  const collectorNumber =
+    getScannedCollectorNumber(numberText);
+
+  if (!cleanName) {
+    throw new Error(
+      "The card name could not be read. Try again with the name clearly inside the guide."
+    );
+  }
+
+  if (!collectorNumber) {
+    return {
+      cards: await searchCardsByName(cleanName),
+      query: cleanName,
+      usedCollectorNumber: false,
+    };
+  }
+
+  const query = `${cleanName} ${collectorNumber}`;
+
+  return {
+    cards: await searchCards(query),
+    query,
+    usedCollectorNumber: true,
+  };
 }
 
 const PRICE_VARIANT_LABELS = {
@@ -1304,11 +1337,17 @@ numberContext.putImageData(
 );
        
 (async () => {
+  let nameWorker;
+  let numberWorker;
+
   try {
-    const nameWorker =
+    searchStatus.textContent = "Reading card...";
+    searchResults.innerHTML = "";
+
+    nameWorker =
       await Tesseract.createWorker("eng");
 
-    const numberWorker =
+    numberWorker =
       await Tesseract.createWorker("eng");
 
     await numberWorker.setParameters({
@@ -1329,38 +1368,46 @@ numberContext.putImageData(
     const numberText =
       numberResult.data.text.trim();
 
-    console.log("NAME OCR:", nameText);
-    console.log("NUMBER OCR:", numberText);
-
-    alert(
-      "NAME:\n" +
-      nameText +
-      "\n\nNUMBER:\n" +
-      numberText
-    );
-
     const scannedName =
       nameText
         .split("\n")[0]
         .replace(/\s+\d{2,3}$/, "")
         .trim();
 
-    console.log(
-      "SCANNED NAME:",
-      scannedName
-    );
+    const scanResult =
+      await searchScannedCard(scannedName, numberText);
 
-    const matchingCards =
-      await searchCardsByName(scannedName);
+    searchInput.value = scanResult.query;
 
-    displayCards(matchingCards);
+    if (scanResult.cards.length === 0) {
+      searchStatus.textContent =
+        "No exact match found. Check the detected name and card number, then search again.";
+      return;
+    }
 
-    await nameWorker.terminate();
-    await numberWorker.terminate();
+    searchStatus.textContent =
+      `${scanResult.cards.length} card${
+        scanResult.cards.length === 1 ? "" : "s"
+      } found${
+        scanResult.usedCollectorNumber
+          ? " using the scanned collector number"
+          : " using the scanned name"
+      }`;
+
+    displayCards(scanResult.cards);
+
+    searchPanel.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
 
   } catch (error) {
     console.error("OCR ERROR:", error);
-    alert("OCR failed. Check console.");
+    searchStatus.textContent =
+      `Scan failed: ${error.message}`;
+  } finally {
+    await nameWorker?.terminate();
+    await numberWorker?.terminate();
   }
 })();
     
