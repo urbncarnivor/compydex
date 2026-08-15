@@ -341,6 +341,49 @@ function getScannedCollectorNumber(text) {
     : "";
 }
 
+function getScannedCardName(text) {
+  const headerWords =
+    /\b(evolves?|from|put|basic|pokemon|pokémon|stage|trainer|energy|illustrator|length|weight)\b/i;
+
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) =>
+      line
+        .replace(/\b\d{2,3}\s*HP\b/gi, "")
+        .replace(/[^a-zA-ZÀ-ÖØ-öø-ÿ'’\-.\s]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+    )
+    .filter((line) => /[a-zA-ZÀ-ÖØ-öø-ÿ]{2}/.test(line));
+
+  if (lines.length === 0) {
+    return "";
+  }
+
+  const rankedLines = lines
+    .map((line, index) => {
+      const wordCount = line.split(/\s+/).length;
+      let score = 100 - line.length;
+
+      if (wordCount <= 3) {
+        score += 35;
+      }
+
+      if (headerWords.test(line)) {
+        score -= 120;
+      }
+
+      // When scores are otherwise close, prefer the lower OCR line because
+      // vintage cards place evolution instructions above the card name.
+      score += index * 3;
+
+      return { line, score };
+    })
+    .sort((a, b) => b.score - a.score);
+
+  return rankedLines[0].line;
+}
+
 async function searchScannedCard(name, numberText) {
   const cleanName = name.trim();
   const collectorNumber =
@@ -1369,10 +1412,7 @@ numberContext.putImageData(
       numberResult.data.text.trim();
 
     const scannedName =
-      nameText
-        .split("\n")[0]
-        .replace(/\s+\d{2,3}$/, "")
-        .trim();
+      getScannedCardName(nameText);
 
     const scanResult =
       await searchScannedCard(scannedName, numberText);
