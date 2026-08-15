@@ -414,6 +414,132 @@ function getEditDistance(first, second) {
   return matrix[rows - 1][columns - 1];
 }
 
+function normalizeComparableCardName(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+}
+
+async function searchCardsByCollectorNumber(collectorNumber) {
+  const numberPart = String(
+    collectorNumber.split("/")[0]
+  ).replace(/\D/g, "");
+
+  if (!numberPart) {
+    return [];
+  }
+
+  const url =
+    `/api/cards?q=${encodeURIComponent(`number:${numberPart}`)}`;
+  let response = null;
+  let requestError = null;
+
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      response = await fetch(url);
+
+      if (
+        response.ok ||
+        (response.status !== 429 && response.status < 500)
+      ) {
+        break;
+      }
+    } catch (error) {
+      requestError = error;
+    }
+
+    if (attempt < 2) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, 650)
+      );
+    }
+  }
+
+  if (!response?.ok) {
+    throw new Error(
+      requestError?.message ||
+      "The card database is temporarily unavailable."
+    );
+  }
+
+  const result = await response.json();
+  const scannedNumber = String(Number(numberPart));
+  const totalPart = collectorNumber.includes("/")
+    ? String(Number(collectorNumber.split("/")[1]))
+    : "";
+
+  return (result.data || []).filter((card) => {
+    if (String(Number(card.number)) !== scannedNumber) {
+      return false;
+    }
+
+    if (!totalPart) {
+      return true;
+    }
+
+    const printedTotal = String(
+      Number(card.set?.printedTotal)
+    );
+    const setTotal = String(Number(card.set?.total));
+
+    return printedTotal === totalPart || setTotal === totalPart;
+  });
+}
+
+async function recoverCardFromNameAndNumber(
+  scannedNames,
+  collectorNumber
+) {
+  const numberedCards =
+    await searchCardsByCollectorNumber(collectorNumber);
+  const comparableNames = scannedNames
+    .flatMap((name) => getScannedNameCandidates(name))
+    .map(normalizeComparableCardName)
+    .filter(Boolean);
+
+  if (numberedCards.length === 0 || comparableNames.length === 0) {
+    return null;
+  }
+
+  const scoredCards = numberedCards
+    .map((card) => {
+      const officialName = normalizeComparableCardName(card.name);
+      const distance = Math.min(
+        ...comparableNames.map((candidate) =>
+          getEditDistance(candidate, officialName)
+        )
+      );
+      const allowedDistance =
+        officialName.length >= 11
+          ? 3
+          : officialName.length >= 6
+            ? 2
+            : 1;
+
+      return {
+        card,
+        distance,
+        allowedDistance,
+      };
+    })
+    .sort((a, b) => a.distance - b.distance);
+
+  const bestMatch = scoredCards[0];
+  const secondMatch = scoredCards[1];
+
+  if (
+    !bestMatch ||
+    bestMatch.distance > bestMatch.allowedDistance ||
+    bestMatch.distance === secondMatch?.distance
+  ) {
+    return null;
+  }
+
+  return bestMatch.card;
+}
+
 function findCardByFuzzyCollectorNumber(cards, numberText) {
   const scannedDigits = numberText.replace(/\D/g, "");
 
@@ -624,6 +750,25 @@ async function searchScannedCard(names, numberText) {
 
   const nameResult =
     await findScannedCardsByName(cleanNames);
+
+  if (
+    nameResult.cards.length === 0 &&
+    collectorNumber
+  ) {
+    const recoveredCard =
+      await recoverCardFromNameAndNumber(
+        cleanNames,
+        collectorNumber
+      );
+
+    if (recoveredCard) {
+      return {
+        cards: [recoveredCard],
+        query: `${recoveredCard.name} ${recoveredCard.number}`,
+        usedCollectorNumber: true,
+      };
+    }
+  }
 
   if (
     collectorNumber &&
