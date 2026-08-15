@@ -336,6 +336,10 @@ async function searchCardsByName(name) {
   }
 
   if (!response?.ok) {
+    if (response?.status === 400) {
+      return [];
+    }
+
     throw new Error(
       requestError?.message ||
       "The card database is temporarily unavailable."
@@ -545,9 +549,15 @@ function getScannedNameCandidates(name) {
 
       const letterCount =
         (candidate.match(/[a-zA-ZÀ-ÖØ-öø-ÿ]/g) || []).length;
+      const hasReadableWord = candidate
+        .split(/\s+/)
+        .some((word) =>
+          (word.match(/[a-zA-ZÀ-ÖØ-öø-ÿ]/g) || []).length >= 3
+        );
 
       if (
         letterCount >= 3 &&
+        hasReadableWord &&
         !candidates.includes(candidate)
       ) {
         candidates.push(candidate);
@@ -566,6 +576,14 @@ async function findScannedCardsByName(names) {
       )
     ),
   ].slice(0, 24);
+
+  if (candidates.length === 0) {
+    const error = new Error(
+      "Could not read the card name. Let the camera focus, then retake the photo."
+    );
+    error.isScanReadError = true;
+    throw error;
+  }
 
   for (const candidate of candidates) {
     try {
@@ -1437,6 +1455,32 @@ theirTradeTotal.textContent =
 
 let scannerStream = null;
 let scannerTorchOn = false;
+let scannerScanInProgress = false;
+let scannerOcrWorkersPromise = null;
+
+function prepareScannerOcrWorkers() {
+  if (!scannerOcrWorkersPromise) {
+    scannerOcrWorkersPromise = (async () => {
+      const workers = await Promise.all([
+        Tesseract.createWorker("eng"),
+        Tesseract.createWorker("eng"),
+      ]);
+
+      await workers[1].setParameters({
+        tessedit_char_whitelist: "0123456789/",
+        tessedit_pageseg_mode:
+          Tesseract.PSM.SINGLE_BLOCK,
+      });
+
+      return workers;
+    })().catch((error) => {
+      scannerOcrWorkersPromise = null;
+      throw error;
+    });
+  }
+
+  return scannerOcrWorkersPromise;
+}
 
 function updateScannerLightControls(torchAvailable) {
   const torchButton =
@@ -1487,6 +1531,18 @@ async function openScanner() {
 
   const scannerStatus =
     document.getElementById("scannerStatus");
+  const scannerPreview =
+    document.getElementById("scannerPreview");
+  const captureButton =
+    document.getElementById("capturePhoto");
+  const cancelButton =
+    document.getElementById("cancelScanner");
+
+  scannerPreview.classList.add("hidden");
+  scannerVideo.classList.remove("hidden");
+  captureButton.disabled = true;
+  captureButton.textContent = "Focusing...";
+  cancelButton.textContent = "Cancel";
 
   if (scannerStatus) {
     scannerStatus.classList.remove("hidden");
@@ -1525,9 +1581,24 @@ async function openScanner() {
       });
     }
 
+    scannerModal.classList.remove("hidden");
+
+    // Load OCR while the user positions the card instead of waiting until
+    // after the photo is accepted.
+    prepareScannerOcrWorkers().catch((error) => {
+      console.error("OCR preload error:", error);
+    });
+
+    await new Promise((resolve) =>
+      setTimeout(resolve, 900)
+    );
+
     if (scannerStatus) {
       scannerStatus.classList.add("hidden");
     }
+
+    captureButton.disabled = false;
+    captureButton.textContent = "📸 Capture";
 
     scannerTorchOn = false;
 
@@ -1535,14 +1606,15 @@ async function openScanner() {
     const capabilities = videoTrack?.getCapabilities?.() || {};
     updateScannerLightControls(Boolean(capabilities.torch));
 
-    scannerModal.classList.remove("hidden");
-
   } catch (error) {
     console.error("Camera error:", error);
 
     if (scannerStatus) {
       scannerStatus.classList.add("hidden");
     }
+
+    captureButton.disabled = false;
+    captureButton.textContent = "📸 Capture";
 
     alert(
       "CompyDex could not access the camera.\n\n" +
@@ -1585,6 +1657,14 @@ document
     }
 
     // Captured-photo state: this button is Use Photo.
+    if (scannerScanInProgress) {
+      searchStatus.textContent =
+        "A card scan is already processing. Please wait.";
+      closeScanner();
+      return;
+    }
+
+    scannerScanInProgress = true;
     window.compydexCapturedImage = scannerPreview.src;
     const makeOcrCrop = (
   image,
@@ -1756,16 +1836,7 @@ prepareNumberCrop(rightNumberCrop);
     searchResults.innerHTML = "";
 
     [nameWorker, numberWorker] =
-      await Promise.all([
-        Tesseract.createWorker("eng"),
-        Tesseract.createWorker("eng"),
-      ]);
-
-    await numberWorker.setParameters({
-      tessedit_char_whitelist: "0123456789/",
-      tessedit_pageseg_mode:
-        Tesseract.PSM.SINGLE_BLOCK,
-    });
+      await prepareScannerOcrWorkers();
 
     const readNames = async () => {
       const primary =
@@ -1862,12 +1933,16 @@ prepareNumberCrop(rightNumberCrop);
 
   } catch (error) {
     console.error("OCR ERROR:", error);
-    searchStatus.textContent =
-      `Scan failed: ${error.message} ` +
-      "The detected name was kept—tap Search to retry.";
+    if (error.isScanReadError) {
+      searchInput.value = "";
+      searchStatus.textContent = error.message;
+    } else {
+      searchStatus.textContent =
+        `Scan failed: ${error.message} ` +
+        "The detected name was kept—tap Search to retry.";
+    }
   } finally {
-    await nameWorker?.terminate();
-    await numberWorker?.terminate();
+    scannerScanInProgress = false;
   }
 })();
     
