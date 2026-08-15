@@ -369,7 +369,7 @@ function getScannedCollectorNumber(text) {
     text.match(/\d{1,4}\s*\/\s*\d{1,4}/);
 
   const standaloneMatch =
-    text.match(/\b\d{1,3}\b/);
+    text.trim().match(/^\d{1,3}$/);
 
   const match = fractionMatch || standaloneMatch;
 
@@ -1501,10 +1501,13 @@ async function openScanner() {
             ideal: "environment"
           },
           width: {
-            ideal: 1280
+            ideal: 1920
           },
           height: {
-            ideal: 720
+            ideal: 1080
+          },
+          frameRate: {
+            ideal: 30
           }
         },
         audio: false
@@ -1618,6 +1621,50 @@ document
   return cropCanvas;
 };
 
+const makeStackedOcrCrop = (
+  image,
+  zones,
+  scale = 4
+) => {
+  const crops = zones.map((zone) =>
+    makeOcrCrop(
+      image,
+      zone.x,
+      zone.y,
+      zone.width,
+      zone.height,
+      scale
+    )
+  );
+
+  const gap = 16;
+  const stackedCanvas = document.createElement("canvas");
+  stackedCanvas.width = Math.max(
+    ...crops.map((crop) => crop.width)
+  );
+  stackedCanvas.height =
+    crops.reduce((total, crop) => total + crop.height, 0) +
+    gap * (crops.length - 1);
+
+  const stackedContext = stackedCanvas.getContext("2d");
+  stackedContext.fillStyle = "white";
+  stackedContext.fillRect(
+    0,
+    0,
+    stackedCanvas.width,
+    stackedCanvas.height
+  );
+
+  let destinationY = 0;
+
+  crops.forEach((crop) => {
+    stackedContext.drawImage(crop, 0, destinationY);
+    destinationY += crop.height + gap;
+  });
+
+  return stackedCanvas;
+};
+
 // Tight band around the large Pokémon name.
 const primaryNameCrop = makeOcrCrop(
   scannerPreview,
@@ -1636,24 +1683,28 @@ const fallbackNameCrop = makeOcrCrop(
   0.10
 );
 
-// Modern cards commonly place the collector number on the lower-left.
-const leftNumberCrop = makeOcrCrop(
+const numberBandYPositions = [0.72, 0.78, 0.84];
+
+// Collector numbers move vertically when a card is tilted or does not fill
+// the guide. Stack three narrow bands so one OCR pass can inspect all of them.
+const leftNumberCrop = makeStackedOcrCrop(
   scannerPreview,
-  0.08,
-  0.83,
-  0.26,
-  0.06,
-  6
+  numberBandYPositions.map((y) => ({
+    x: 0.06,
+    y,
+    width: 0.36,
+    height: 0.07,
+  }))
 );
 
-// Vintage cards commonly place the collector number on the lower-right.
-const rightNumberCrop = makeOcrCrop(
+const rightNumberCrop = makeStackedOcrCrop(
   scannerPreview,
-  0.67,
-  0.83,
-  0.25,
-  0.06,
-  6
+  numberBandYPositions.map((y) => ({
+    x: 0.58,
+    y,
+    width: 0.36,
+    height: 0.07,
+  }))
 );
 
 const prepareNumberCrop = (cropCanvas) => {
@@ -1769,6 +1820,27 @@ prepareNumberCrop(rightNumberCrop);
     if (scanResult.cards.length === 0) {
       searchStatus.textContent =
         "No exact match found. Check the detected name and card number, then search again.";
+      return;
+    }
+
+    if (
+      !scanResult.usedCollectorNumber &&
+      scanResult.cards.length > 1
+    ) {
+      const detectedName = scanResult.query.trim();
+
+      searchInput.value = `${detectedName} `;
+      searchResults.innerHTML = "";
+      searchStatus.textContent =
+        `${detectedName} found. Enter the card number ` +
+        "(example: 29), then tap Search.";
+
+      searchPanel.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+      setTimeout(() => searchInput.focus(), 350);
       return;
     }
 
