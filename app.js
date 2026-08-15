@@ -384,6 +384,69 @@ function getScannedCardName(text) {
   return rankedLines[0].line;
 }
 
+function getScannedNameCandidates(name) {
+  const normalizedName = name
+    .replace(/^[^a-zA-ZÀ-ÖØ-öø-ÿ]+/, "")
+    .replace(/[^a-zA-ZÀ-ÖØ-öø-ÿ'’\-.]+$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  const words = normalizedName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 8);
+
+  const candidates = [];
+
+  // Try the complete OCR result first, then progressively shorter
+  // contiguous phrases. The API confirms which phrase is a real card name.
+  for (let length = words.length; length >= 1; length--) {
+    for (let start = 0; start + length <= words.length; start++) {
+      const candidate = words
+        .slice(start, start + length)
+        .join(" ");
+
+      if (
+        candidate.length >= 2 &&
+        !candidates.includes(candidate)
+      ) {
+        candidates.push(candidate);
+      }
+    }
+  }
+
+  return candidates.slice(0, 12);
+}
+
+async function findScannedCardsByName(name) {
+  const candidates = getScannedNameCandidates(name);
+  let firstError = null;
+
+  for (const candidate of candidates) {
+    try {
+      const cards = await searchCardsByName(candidate);
+
+      if (cards.length > 0) {
+        return {
+          cards,
+          matchedName: candidate,
+        };
+      }
+    } catch (error) {
+      firstError ||= error;
+    }
+  }
+
+  if (firstError) {
+    throw firstError;
+  }
+
+  return {
+    cards: [],
+    matchedName: candidates[0] || "",
+  };
+}
+
 async function searchScannedCard(name, numberText) {
   const cleanName = name.trim();
   const collectorNumber =
@@ -395,20 +458,35 @@ async function searchScannedCard(name, numberText) {
     );
   }
 
-  if (!collectorNumber) {
-    return {
-      cards: await searchCardsByName(cleanName),
-      query: cleanName,
-      usedCollectorNumber: false,
-    };
+  const nameResult =
+    await findScannedCardsByName(cleanName);
+
+  if (
+    collectorNumber &&
+    nameResult.cards.length > 0
+  ) {
+    const scannedNumber = String(
+      Number(collectorNumber.split("/")[0])
+    );
+
+    const numberMatches =
+      nameResult.cards.filter((card) =>
+        String(Number(card.number)) === scannedNumber
+      );
+
+    if (numberMatches.length > 0) {
+      return {
+        cards: numberMatches,
+        query: `${nameResult.matchedName} ${collectorNumber}`,
+        usedCollectorNumber: true,
+      };
+    }
   }
 
-  const query = `${cleanName} ${collectorNumber}`;
-
   return {
-    cards: await searchCards(query),
-    query,
-    usedCollectorNumber: true,
+    cards: nameResult.cards,
+    query: nameResult.matchedName || cleanName,
+    usedCollectorNumber: false,
   };
 }
 
