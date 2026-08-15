@@ -311,12 +311,34 @@ async function searchCardsByName(name) {
   const url =
     `/api/cards?q=${encodeURIComponent(apiQuery)}`;
 
-  const response =
-    await fetch(url);
+  let response = null;
+  let requestError = null;
 
-  if (!response.ok) {
+  for (let attempt = 1; attempt <= 2; attempt++) {
+    try {
+      response = await fetch(url);
+
+      if (
+        response.ok ||
+        (response.status !== 429 && response.status < 500)
+      ) {
+        break;
+      }
+    } catch (error) {
+      requestError = error;
+    }
+
+    if (attempt < 2) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, 650)
+      );
+    }
+  }
+
+  if (!response?.ok) {
     throw new Error(
-      "Could not search scanned card."
+      requestError?.message ||
+      "The card database is temporarily unavailable."
     );
   }
 
@@ -354,6 +376,101 @@ function getScannedCollectorNumber(text) {
   return match
     ? match[0].replace(/\s+/g, "")
     : "";
+}
+
+function getEditDistance(first, second) {
+  const rows = second.length + 1;
+  const columns = first.length + 1;
+  const matrix = Array.from(
+    { length: rows },
+    () => Array(columns).fill(0)
+  );
+
+  for (let column = 0; column < columns; column++) {
+    matrix[0][column] = column;
+  }
+
+  for (let row = 0; row < rows; row++) {
+    matrix[row][0] = row;
+  }
+
+  for (let row = 1; row < rows; row++) {
+    for (let column = 1; column < columns; column++) {
+      const substitutionCost =
+        first[column - 1] === second[row - 1] ? 0 : 1;
+
+      matrix[row][column] = Math.min(
+        matrix[row - 1][column] + 1,
+        matrix[row][column - 1] + 1,
+        matrix[row - 1][column - 1] + substitutionCost
+      );
+    }
+  }
+
+  return matrix[rows - 1][columns - 1];
+}
+
+function findCardByFuzzyCollectorNumber(cards, numberText) {
+  const scannedDigits = numberText.replace(/\D/g, "");
+
+  if (scannedDigits.length < 3) {
+    return null;
+  }
+
+  const scoredCards = cards
+    .map((card) => {
+      const cardNumber = String(card.number || "").replace(/\D/g, "");
+      const setTotal = String(
+        card.set?.printedTotal || card.set?.total || ""
+      ).replace(/\D/g, "");
+
+      if (!cardNumber || !setTotal) {
+        return null;
+      }
+
+      const signature = `${cardNumber}${setTotal}`;
+      const possibleLengths = [
+        signature.length - 1,
+        signature.length,
+        signature.length + 1,
+      ].filter((length) => length > 0);
+
+      let bestDistance = getEditDistance(
+        scannedDigits,
+        signature
+      );
+
+      for (const length of possibleLengths) {
+        for (
+          let start = 0;
+          start + length <= scannedDigits.length;
+          start++
+        ) {
+          const portion = scannedDigits.slice(
+            start,
+            start + length
+          );
+          bestDistance = Math.min(
+            bestDistance,
+            getEditDistance(portion, signature)
+          );
+        }
+      }
+
+      return { card, distance: bestDistance };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.distance - b.distance);
+
+  if (
+    scoredCards.length === 0 ||
+    scoredCards[0].distance > 1 ||
+    scoredCards[0].distance === scoredCards[1]?.distance
+  ) {
+    return null;
+  }
+
+  return scoredCards[0].card;
 }
 
 function getScannedCardNames(text) {
@@ -510,6 +627,21 @@ async function searchScannedCard(names, numberText) {
         usedCollectorNumber: true,
       };
     }
+  }
+
+  const fuzzyNumberMatch =
+    findCardByFuzzyCollectorNumber(
+      nameResult.cards,
+      numberText
+    );
+
+  if (fuzzyNumberMatch) {
+    return {
+      cards: [fuzzyNumberMatch],
+      query:
+        `${nameResult.matchedName} ${fuzzyNumberMatch.number}`,
+      usedCollectorNumber: true,
+    };
   }
 
   return {
@@ -1305,32 +1437,10 @@ theirTradeTotal.textContent =
 
 let scannerStream = null;
 let scannerTorchOn = false;
-let scannerBrightnessMultiplier = 1;
-
-function setScannerBrightness(multiplier) {
-  const scannerVideo = document.getElementById("scannerVideo");
-  const brightnessButtons = document.querySelectorAll(
-    "[data-scan-brightness]"
-  );
-
-  scannerBrightnessMultiplier = Number(multiplier) || 1;
-  scannerVideo.style.filter =
-    `brightness(${scannerBrightnessMultiplier})`;
-
-  brightnessButtons.forEach((button) => {
-    button.classList.toggle(
-      "active",
-      Number(button.dataset.scanBrightness) ===
-        scannerBrightnessMultiplier
-    );
-  });
-}
 
 function updateScannerLightControls(torchAvailable) {
   const torchButton =
     document.getElementById("scannerTorchButton");
-  const brightnessLevels =
-    document.getElementById("scannerBrightnessLevels");
 
   torchButton.disabled = !torchAvailable;
   torchButton.classList.toggle("active", scannerTorchOn);
@@ -1338,7 +1448,6 @@ function updateScannerLightControls(torchAvailable) {
   torchButton.textContent = torchAvailable
     ? `🔦 ${scannerTorchOn ? "On" : "Off"}`
     : "🔦 Unavailable";
-  brightnessLevels.classList.toggle("hidden", !scannerTorchOn);
 }
 
 async function toggleScannerTorch() {
@@ -1358,10 +1467,6 @@ async function toggleScannerTorch() {
     });
     scannerTorchOn = nextTorchState;
 
-    if (!scannerTorchOn) {
-      setScannerBrightness(1);
-    }
-
     updateScannerLightControls(true);
   } catch (error) {
     console.error("Flashlight error:", error);
@@ -1372,14 +1477,6 @@ async function toggleScannerTorch() {
 document
   .getElementById("scannerTorchButton")
   .addEventListener("click", toggleScannerTorch);
-
-document
-  .querySelectorAll("[data-scan-brightness]")
-  .forEach((button) => {
-    button.addEventListener("click", () => {
-      setScannerBrightness(button.dataset.scanBrightness);
-    });
-  });
 
 async function openScanner() {
   const scannerModal =
@@ -1430,7 +1527,6 @@ async function openScanner() {
     }
 
     scannerTorchOn = false;
-    setScannerBrightness(1);
 
     const videoTrack = scannerStream.getVideoTracks()[0];
     const capabilities = videoTrack?.getCapabilities?.() || {};
@@ -1465,7 +1561,6 @@ function closeScanner() {
 
     scannerVideo.srcObject = null;
     scannerTorchOn = false;
-    setScannerBrightness(1);
     updateScannerLightControls(false);
 
   scannerModal.classList.add("hidden");
@@ -1493,11 +1588,10 @@ document
   xRatio,
   yRatio,
   widthRatio,
-  heightRatio
+  heightRatio,
+  scale = 3
 ) => {
   const cropCanvas = document.createElement("canvas");
-
-  const scale = 3;
 
   const sourceX = image.naturalWidth * xRatio;
   const sourceY = image.naturalHeight * yRatio;
@@ -1545,19 +1639,21 @@ const fallbackNameCrop = makeOcrCrop(
 // Modern cards commonly place the collector number on the lower-left.
 const leftNumberCrop = makeOcrCrop(
   scannerPreview,
-  0.12,
-  0.84,
-  0.30,
-  0.08
+  0.08,
+  0.83,
+  0.26,
+  0.06,
+  6
 );
 
 // Vintage cards commonly place the collector number on the lower-right.
 const rightNumberCrop = makeOcrCrop(
   scannerPreview,
-  0.66,
-  0.84,
-  0.27,
-  0.08
+  0.67,
+  0.83,
+  0.25,
+  0.06,
+  6
 );
 
 const prepareNumberCrop = (cropCanvas) => {
@@ -1580,9 +1676,14 @@ const prepareNumberCrop = (cropCanvas) => {
       pixels[i + 1] * 0.587 +
       pixels[i + 2] * 0.114;
 
-    pixels[i] = gray;
-    pixels[i + 1] = gray;
-    pixels[i + 2] = gray;
+    const contrasted = Math.max(
+      0,
+      Math.min(255, 128 + (gray - 128) * 2.2)
+    );
+
+    pixels[i] = contrasted;
+    pixels[i + 1] = contrasted;
+    pixels[i + 2] = contrasted;
   }
 
   numberContext.putImageData(
@@ -1612,7 +1713,7 @@ prepareNumberCrop(rightNumberCrop);
     await numberWorker.setParameters({
       tessedit_char_whitelist: "0123456789/",
       tessedit_pageseg_mode:
-        Tesseract.PSM.SINGLE_WORD,
+        Tesseract.PSM.SINGLE_BLOCK,
     });
 
     const readNames = async () => {
@@ -1779,8 +1880,6 @@ const guideHeight = videoHeight * 0.72;
 const guideX = (videoWidth - guideWidth) / 2;
 const guideY = (videoHeight - guideHeight) / 2;
 
-context.save();
-context.filter = `brightness(${scannerBrightnessMultiplier})`;
 context.drawImage(
   scannerVideo,
   guideX,
@@ -1792,7 +1891,6 @@ context.drawImage(
   sampleWidth,
   sampleHeight
 );
-context.restore();
 
 const currentFrame =
   context.getImageData(
@@ -2045,8 +2143,6 @@ scannerCanvas.height = Math.round(sourceHeight);
 
 const context = scannerCanvas.getContext("2d");
 
-context.save();
-context.filter = `brightness(${scannerBrightnessMultiplier})`;
 context.drawImage(
   scannerVideo,
   sourceX,
@@ -2058,7 +2154,6 @@ context.drawImage(
   scannerCanvas.width,
   scannerCanvas.height
 );
-context.restore();
 
     const imageData =
       scannerCanvas.toDataURL("image/jpeg", 0.92);

@@ -888,18 +888,13 @@ box-sizing: border-box;
 }
 
 .scanner-light-controls {
-    display: grid;
-    grid-template-columns: minmax(92px, 1.15fr) minmax(0, 3fr);
-    align-items: stretch;
-    gap: 8px;
+    display: block;
     margin-top: 8px;
     flex-shrink: 0;
     width: 100%;
-    min-width: 0;
 }
 
-.scanner-torch-button,
-.scanner-brightness-levels button {
+.scanner-torch-button {
     min-height: 44px;
     border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 12px;
@@ -925,43 +920,6 @@ box-sizing: border-box;
 
 .scanner-torch-button:disabled {
     opacity: 0.62;
-}
-
-.scanner-brightness-levels {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    width: 100%;
-    min-width: 0;
-    gap: 6px;
-    padding: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    border-radius: 14px;
-    background: rgba(2, 6, 23, 0.86);
-}
-
-.scanner-brightness-levels.hidden {
-    display: none;
-}
-
-.scanner-brightness-levels span {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip: rect(0 0 0 0);
-    white-space: nowrap;
-}
-
-.scanner-brightness-levels button {
-    width: 100%;
-    min-height: 40px;
-    padding: 7px 3px;
-    font-size: 12px;
-}
-
-.scanner-brightness-levels button.active {
-    border-color: #a78bfa;
-    background: linear-gradient(90deg, #7c3aed, #9b5cff);
 }
 
 .scanner-mode-toggle {
