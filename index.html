@@ -10,7 +10,7 @@
 
   <title>CompyDex</title>
 
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="styles.css?v=8">
   <link rel="manifest" href="manifest.json">
 </head>
 
@@ -269,6 +269,28 @@
   <div class="scanner-overlay"></div>
 
 </div>
+
+  <div class="scanner-light-controls">
+    <button
+      id="scannerTorchButton"
+      class="scanner-torch-button"
+      type="button"
+      aria-pressed="false"
+    >
+      🔦 Off
+    </button>
+
+    <div
+      id="scannerBrightnessLevels"
+      class="scanner-brightness-levels hidden"
+      aria-label="Scan brightness"
+    >
+      <span>Brightness</span>
+      <button type="button" data-scan-brightness="0.85">Low</button>
+      <button type="button" data-scan-brightness="1" class="active">Normal</button>
+      <button type="button" data-scan-brightness="1.35">High</button>
+    </div>
+  </div>
         <div id="scannerStatus" class="scanner-status">
   Starting camera...
 </div>
@@ -306,7 +328,7 @@
 </div>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   
-  <script src="app.js?v=6"></script>
+  <script src="app.js?v=8"></script>
 
 </body>
 </html>

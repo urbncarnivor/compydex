@@ -887,6 +887,78 @@ box-sizing: border-box;
         0 0 18px rgba(155, 92, 255, 0.35);
 }
 
+.scanner-light-controls {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    margin-top: 8px;
+    flex-shrink: 0;
+}
+
+.scanner-torch-button,
+.scanner-brightness-levels button {
+    min-height: 44px;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.88);
+    color: white;
+    font-weight: 800;
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+}
+
+.scanner-torch-button {
+    min-width: 92px;
+    padding: 10px 12px;
+    font-size: 15px;
+    flex: 0 0 auto;
+}
+
+.scanner-torch-button.active {
+    border-color: #facc15;
+    background: rgba(113, 63, 18, 0.92);
+    color: #fef08a;
+}
+
+.scanner-torch-button:disabled {
+    opacity: 0.62;
+}
+
+.scanner-brightness-levels {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    flex: 1;
+    gap: 6px;
+    padding: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    border-radius: 14px;
+    background: rgba(2, 6, 23, 0.86);
+}
+
+.scanner-brightness-levels.hidden {
+    display: none;
+}
+
+.scanner-brightness-levels span {
+    grid-column: 1 / -1;
+    color: #e2e8f0;
+    font-size: 11px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.scanner-brightness-levels button {
+    width: 100%;
+    min-height: 40px;
+    padding: 7px 3px;
+    font-size: 12px;
+}
+
+.scanner-brightness-levels button.active {
+    border-color: #a78bfa;
+    background: linear-gradient(90deg, #7c3aed, #9b5cff);
+}
+
 .scanner-mode-toggle {
     display: flex;
     gap: 8px;

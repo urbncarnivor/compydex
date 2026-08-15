@@ -324,7 +324,10 @@ async function searchCardsByName(name) {
     await response.json();
 
   const cards =
-    result.data || [];
+    (result.data || []).filter(
+      (card) =>
+        card.name?.trim().toLowerCase() === cleanName
+    );
 
   cards.sort((a, b) => {
     const aDate =
@@ -353,7 +356,7 @@ function getScannedCollectorNumber(text) {
     : "";
 }
 
-function getScannedCardName(text) {
+function getScannedCardNames(text) {
   const headerWords =
     /\b(evolves?|from|put|basic|pokemon|pokémon|stage|trainer|energy|illustrator|length|weight)\b/i;
 
@@ -366,10 +369,15 @@ function getScannedCardName(text) {
         .replace(/\s+/g, " ")
         .trim()
     )
-    .filter((line) => /[a-zA-ZÀ-ÖØ-öø-ÿ]{2}/.test(line));
+    .filter((line) => {
+      const letterCount =
+        (line.match(/[a-zA-ZÀ-ÖØ-öø-ÿ]/g) || []).length;
+
+      return letterCount >= 3;
+    });
 
   if (lines.length === 0) {
-    return "";
+    return [];
   }
 
   const rankedLines = lines
@@ -393,7 +401,7 @@ function getScannedCardName(text) {
     })
     .sort((a, b) => b.score - a.score);
 
-  return rankedLines[0].line;
+  return rankedLines.map(({ line }) => line);
 }
 
 function getScannedNameCandidates(name) {
@@ -418,8 +426,11 @@ function getScannedNameCandidates(name) {
         .slice(start, start + length)
         .join(" ");
 
+      const letterCount =
+        (candidate.match(/[a-zA-ZÀ-ÖØ-öø-ÿ]/g) || []).length;
+
       if (
-        candidate.length >= 2 &&
+        letterCount >= 3 &&
         !candidates.includes(candidate)
       ) {
         candidates.push(candidate);
@@ -430,8 +441,15 @@ function getScannedNameCandidates(name) {
   return candidates.slice(0, 12);
 }
 
-async function findScannedCardsByName(name) {
-  const candidates = getScannedNameCandidates(name);
+async function findScannedCardsByName(names) {
+  const candidates = [
+    ...new Set(
+      names.flatMap((name) =>
+        getScannedNameCandidates(name)
+      )
+    ),
+  ].slice(0, 24);
+
   let firstError = null;
 
   for (const candidate of candidates) {
@@ -459,19 +477,22 @@ async function findScannedCardsByName(name) {
   };
 }
 
-async function searchScannedCard(name, numberText) {
-  const cleanName = name.trim();
+async function searchScannedCard(names, numberText) {
+  const cleanNames = names
+    .map((name) => name.trim())
+    .filter(Boolean);
+
   const collectorNumber =
     getScannedCollectorNumber(numberText);
 
-  if (!cleanName) {
+  if (cleanNames.length === 0) {
     throw new Error(
       "The card name could not be read. Try again with the name clearly inside the guide."
     );
   }
 
   const nameResult =
-    await findScannedCardsByName(cleanName);
+    await findScannedCardsByName(cleanNames);
 
   if (
     collectorNumber &&
@@ -497,7 +518,7 @@ async function searchScannedCard(name, numberText) {
 
   return {
     cards: nameResult.cards,
-    query: nameResult.matchedName || cleanName,
+    query: nameResult.matchedName || cleanNames[0],
     usedCollectorNumber: false,
   };
 }
@@ -1287,6 +1308,82 @@ theirTradeTotal.textContent =
 }
 
 let scannerStream = null;
+let scannerTorchOn = false;
+let scannerBrightnessMultiplier = 1;
+
+function setScannerBrightness(multiplier) {
+  const scannerVideo = document.getElementById("scannerVideo");
+  const brightnessButtons = document.querySelectorAll(
+    "[data-scan-brightness]"
+  );
+
+  scannerBrightnessMultiplier = Number(multiplier) || 1;
+  scannerVideo.style.filter =
+    `brightness(${scannerBrightnessMultiplier})`;
+
+  brightnessButtons.forEach((button) => {
+    button.classList.toggle(
+      "active",
+      Number(button.dataset.scanBrightness) ===
+        scannerBrightnessMultiplier
+    );
+  });
+}
+
+function updateScannerLightControls(torchAvailable) {
+  const torchButton =
+    document.getElementById("scannerTorchButton");
+  const brightnessLevels =
+    document.getElementById("scannerBrightnessLevels");
+
+  torchButton.disabled = !torchAvailable;
+  torchButton.classList.toggle("active", scannerTorchOn);
+  torchButton.setAttribute("aria-pressed", String(scannerTorchOn));
+  torchButton.textContent = torchAvailable
+    ? `🔦 ${scannerTorchOn ? "On" : "Off"}`
+    : "🔦 Unavailable";
+  brightnessLevels.classList.toggle("hidden", !scannerTorchOn);
+}
+
+async function toggleScannerTorch() {
+  const videoTrack = scannerStream?.getVideoTracks?.()[0];
+  const capabilities = videoTrack?.getCapabilities?.() || {};
+
+  if (!videoTrack || !capabilities.torch) {
+    updateScannerLightControls(false);
+    return;
+  }
+
+  const nextTorchState = !scannerTorchOn;
+
+  try {
+    await videoTrack.applyConstraints({
+      advanced: [{ torch: nextTorchState }]
+    });
+    scannerTorchOn = nextTorchState;
+
+    if (!scannerTorchOn) {
+      setScannerBrightness(1);
+    }
+
+    updateScannerLightControls(true);
+  } catch (error) {
+    console.error("Flashlight error:", error);
+    updateScannerLightControls(false);
+  }
+}
+
+document
+  .getElementById("scannerTorchButton")
+  .addEventListener("click", toggleScannerTorch);
+
+document
+  .querySelectorAll("[data-scan-brightness]")
+  .forEach((button) => {
+    button.addEventListener("click", () => {
+      setScannerBrightness(button.dataset.scanBrightness);
+    });
+  });
 
 async function openScanner() {
   const scannerModal =
@@ -1336,6 +1433,13 @@ async function openScanner() {
       scannerStatus.classList.add("hidden");
     }
 
+    scannerTorchOn = false;
+    setScannerBrightness(1);
+
+    const videoTrack = scannerStream.getVideoTracks()[0];
+    const capabilities = videoTrack?.getCapabilities?.() || {};
+    updateScannerLightControls(Boolean(capabilities.torch));
+
     scannerModal.classList.remove("hidden");
 
   } catch (error) {
@@ -1364,6 +1468,9 @@ function closeScanner() {
     }
 
     scannerVideo.srcObject = null;
+    scannerTorchOn = false;
+    setScannerBrightness(1);
+    updateScannerLightControls(false);
 
   scannerModal.classList.add("hidden");
 }
@@ -1421,8 +1528,17 @@ document
   return cropCanvas;
 };
 
-// Top area: card name
-const nameCrop = makeOcrCrop(
+// Tight band around the large Pokémon name.
+const primaryNameCrop = makeOcrCrop(
+  scannerPreview,
+  0.18,
+  0.14,
+  0.58,
+  0.08
+);
+
+// Wider fallback band for cards whose name row sits higher or lower.
+const fallbackNameCrop = makeOcrCrop(
   scannerPreview,
   0.18,
   0.10,
@@ -1503,8 +1619,11 @@ prepareNumberCrop(rightNumberCrop);
         Tesseract.PSM.SINGLE_WORD,
     });
 
-    const nameResult =
-      await nameWorker.recognize(nameCrop);
+    const primaryNameResult =
+      await nameWorker.recognize(primaryNameCrop);
+
+    const fallbackNameResult =
+      await nameWorker.recognize(fallbackNameCrop);
 
     const leftNumberResult =
       await numberWorker.recognize(leftNumberCrop);
@@ -1512,22 +1631,24 @@ prepareNumberCrop(rightNumberCrop);
     const rightNumberResult =
       await numberWorker.recognize(rightNumberCrop);
 
-    const nameText =
-      nameResult.data.text.trim();
+    const nameText = [
+      primaryNameResult.data.text,
+      fallbackNameResult.data.text,
+    ].join("\n").trim();
 
     const numberText = [
       leftNumberResult.data.text,
       rightNumberResult.data.text,
     ].join("\n").trim();
 
-    const scannedName =
-      getScannedCardName(nameText);
+    const scannedNames =
+      getScannedCardNames(nameText);
 
     // Show what OCR detected even if the API request later fails.
-    searchInput.value = scannedName;
+    searchInput.value = scannedNames[0] || "";
 
     const scanResult =
-      await searchScannedCard(scannedName, numberText);
+      await searchScannedCard(scannedNames, numberText);
 
     searchInput.value = scanResult.query;
 
@@ -1644,6 +1765,8 @@ const guideHeight = videoHeight * 0.72;
 const guideX = (videoWidth - guideWidth) / 2;
 const guideY = (videoHeight - guideHeight) / 2;
 
+context.save();
+context.filter = `brightness(${scannerBrightnessMultiplier})`;
 context.drawImage(
   scannerVideo,
   guideX,
@@ -1655,6 +1778,7 @@ context.drawImage(
   sampleWidth,
   sampleHeight
 );
+context.restore();
 
 const currentFrame =
   context.getImageData(
@@ -1907,6 +2031,8 @@ scannerCanvas.height = Math.round(sourceHeight);
 
 const context = scannerCanvas.getContext("2d");
 
+context.save();
+context.filter = `brightness(${scannerBrightnessMultiplier})`;
 context.drawImage(
   scannerVideo,
   sourceX,
@@ -1918,6 +2044,7 @@ context.drawImage(
   scannerCanvas.width,
   scannerCanvas.height
 );
+context.restore();
 
     const imageData =
       scannerCanvas.toDataURL("image/jpeg", 0.92);
