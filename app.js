@@ -15,6 +15,8 @@ const selectedCardName = document.getElementById("selectedCardName");
 const selectedCardSet = document.getElementById("selectedCardSet");
 const selectedCardNumber = document.getElementById("selectedCardNumber");
 const selectedCardRarity = document.getElementById("selectedCardRarity");
+const priceVariantField = document.getElementById("priceVariantField");
+const priceVariantSelect = document.getElementById("priceVariantSelect");
 
 const conditionSelect = document.getElementById("conditionSelect");
 const cardTypeSelect = document.getElementById("cardTypeSelect");
@@ -57,7 +59,9 @@ const tradeStatus =
   document.getElementById("tradeStatus");
 
 let selectedCardMarketPrice = 0;
+let selectedCardData = null;
 let activeTradeSide = null;
+let currentSearchCards = [];
 let yourTradeCardData = [];
 let theirTradeCardData = [];
 let yourCashAdjustment = 0;
@@ -78,6 +82,10 @@ addYourCardButton.addEventListener("click", () => {
   searchStatus.textContent =
     "Search for a card to add to Your Side";
 
+  if (currentSearchCards.length > 0) {
+    displayCards(currentSearchCards);
+  }
+
   searchInput.focus();
 
   searchPanel.scrollIntoView({
@@ -93,6 +101,10 @@ addTheirCardButton.addEventListener("click", () => {
   searchStatus.textContent =
     "Search for a card to add to Their Side";
 
+  if (currentSearchCards.length > 0) {
+    displayCards(currentSearchCards);
+  }
+
   searchInput.focus();
 
   searchPanel.scrollIntoView({
@@ -101,7 +113,12 @@ addTheirCardButton.addEventListener("click", () => {
   });
 });
 closeTradeButton.addEventListener("click", () => {
+  activeTradeSide = null;
   tradePanel.classList.add("hidden");
+
+  if (currentSearchCards.length > 0) {
+    displayCards(currentSearchCards);
+  }
 });
 
 function updateCardTypeFields() {
@@ -860,7 +877,37 @@ function getCardMarketPrice(card) {
   return defaultVariant?.marketPrice || 0;
 }
 
+function getCardVariant(card, variantKey) {
+  const variants = getCardPriceVariants(card);
+
+  return (
+    variants.find((variant) => variant.key === variantKey) ||
+    variants[0] ||
+    null
+  );
+}
+
+function buildVariantOptions(variants, selectedKey = "") {
+  if (variants.length === 0) {
+    return `<option value="">Market price unavailable</option>`;
+  }
+
+  return variants
+    .map(
+      (variant) => `
+        <option
+          value="${variant.key}"
+          ${variant.key === selectedKey ? "selected" : ""}
+        >
+          ${variant.label} — ${formatMoney(variant.marketPrice)}
+        </option>
+      `
+    )
+    .join("");
+}
+
 function displayCards(cards) {
+  currentSearchCards = cards;
   searchResults.innerHTML = "";
 
   cards.forEach((card) => {
@@ -882,35 +929,70 @@ function displayCards(cards) {
             .join("")
         : `<p class="card-price">Market price unavailable</p>`;
 
+    const defaultVariant = variants[0] || null;
+    const tradeSideLabel =
+      activeTradeSide === "your" ? "Your Side" : "Their Side";
+    const tradeControlsMarkup = activeTradeSide
+      ? `
+          <div class="trade-result-controls">
+            <label>
+              Printing / Finish
+              <select class="result-variant-select">
+                ${buildVariantOptions(variants, defaultVariant?.key || "")}
+              </select>
+            </label>
+
+            <button type="button" class="add-result-to-trade">
+              + Add to ${tradeSideLabel}
+            </button>
+          </div>
+        `
+      : "";
+
     cardElement.innerHTML = `
-      <img
-        src="${card.images.small}"
-        alt="${card.name}"
-        loading="lazy"
-      >
+      <div class="card-result-main">
+        <img
+          src="${card.images.small}"
+          alt="${card.name}"
+          loading="lazy"
+        >
 
-      <div class="card-result-info">
-        <h3>${card.name}</h3>
-        <p>${card.set.name}</p>
-        <p>Card ${card.number}/${card.set.printedTotal}</p>
+        <div class="card-result-info">
+          <h3>${card.name}</h3>
+          <p>${card.set.name}</p>
+          <p>Card ${card.number}/${card.set.printedTotal}</p>
 
-        <div class="price-variant-list">
-          ${variantMarkup}
+          <div class="price-variant-list">
+            ${variantMarkup}
+          </div>
         </div>
       </div>
+
+      ${tradeControlsMarkup}
     `;
 
-    cardElement.addEventListener("click", () => {
-    if (activeTradeSide) {
-        addCardToTrade(card);
-        tradePanel.scrollIntoView({
-            behavior: "smooth",
-            block: "start"
-        });
-    } else {
+    const resultMain = cardElement.querySelector(".card-result-main");
+
+    resultMain.addEventListener("click", () => {
+      if (!activeTradeSide) {
         openCardDetail(card);
-    }
-});
+      }
+    });
+
+    const addToTradeButton =
+      cardElement.querySelector(".add-result-to-trade");
+
+    addToTradeButton?.addEventListener("click", () => {
+      const variantSelect =
+        cardElement.querySelector(".result-variant-select");
+
+      addCardToTrade(card, variantSelect?.value || "");
+
+      tradePanel.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+    });
 
     searchResults.appendChild(cardElement);
   });
@@ -930,7 +1012,18 @@ function getRarityDisplay(rarity) {
 }
 
 function openCardDetail(card) {
-  selectedCardMarketPrice = getCardMarketPrice(card);
+  selectedCardData = card;
+
+  const variants = getCardPriceVariants(card);
+  const defaultVariant = variants[0] || null;
+
+  selectedCardMarketPrice = defaultVariant?.marketPrice || 0;
+  priceVariantSelect.innerHTML = buildVariantOptions(
+    variants,
+    defaultVariant?.key || ""
+  );
+  priceVariantSelect.disabled = variants.length === 0;
+  priceVariantField.classList.toggle("hidden", variants.length === 0);
 
   selectedCardImage.src =
     card.images.large || card.images.small;
@@ -959,9 +1052,17 @@ function openCardDetail(card) {
   ebaySoldButton.onclick = () => {
     const cardType = cardTypeSelect.value;
     const grade = gradeSelect.value;
+    const selectedVariant = getCardVariant(
+      card,
+      priceVariantSelect.value
+    );
 
     let searchText =
       `${card.name} ${card.number} ${card.set?.name || ""}`;
+
+    if (selectedVariant?.label) {
+      searchText += ` ${selectedVariant.label}`;
+    }
 
     if (cardType === "psa") {
       searchText += ` PSA ${grade}`;
@@ -1010,6 +1111,20 @@ function openCardDetail(card) {
     block: "start"
   });
 }
+
+priceVariantSelect.addEventListener("change", () => {
+  if (!selectedCardData) {
+    return;
+  }
+
+  const selectedVariant = getCardVariant(
+    selectedCardData,
+    priceVariantSelect.value
+  );
+
+  selectedCardMarketPrice = selectedVariant?.marketPrice || 0;
+  updateCardTypeFields();
+});
 function updateConditionValue() {
   const conditionMultiplier =
     Number(conditionSelect.value) || 1;
@@ -1125,7 +1240,15 @@ function displayRecentCards() {
 }
 
 displayRecentCards();
-function addCardToTrade(card) {
+function addCardToTrade(card, variantKey = "") {
+  if (activeTradeSide !== "your" && activeTradeSide !== "their") {
+    return;
+  }
+
+  const priceVariants = getCardPriceVariants(card);
+  const selectedVariant =
+    getCardVariant(card, variantKey);
+
   const cardData = {
   name: card.name,
   number: card.number,
@@ -1133,7 +1256,11 @@ function addCardToTrade(card) {
   image: card.images.small,
 
   cardType: "raw",
-  rawPrice: getCardMarketPrice(card),
+  priceVariants,
+  selectedVariantKey: selectedVariant?.key || "",
+  selectedVariantLabel:
+    selectedVariant?.label || "Market price unavailable",
+  rawPrice: selectedVariant?.marketPrice || 0,
     
   priceSource: "tcg",
   ebayComp: 0,
@@ -1156,6 +1283,10 @@ function addCardToTrade(card) {
   updateTradeDisplay();
 
   activeTradeSide = null;
+
+  if (currentSearchCards.length > 0) {
+    displayCards(currentSearchCards);
+  }
 }
 const TRADE_CONDITION_MULTIPLIERS = {
   NM: 1,
@@ -1215,6 +1346,25 @@ container.innerHTML = cards
         <strong>${card.name}</strong>
 
         <span>
+          ${card.setName} · ${card.number}
+        </span>
+        ${card.priceVariants?.length > 0 ? `
+          <label>
+            Printing / Finish
+            <select
+              class="trade-variant-select"
+              data-card-index="${index}"
+            >
+              ${buildVariantOptions(
+                card.priceVariants,
+                card.selectedVariantKey
+              )}
+            </select>
+          </label>
+        ` : `
+          <span>Market price unavailable</span>
+        `}
+        <span class="trade-market-price">
           Market: ${formatMoney(card.rawPrice)}
         </span>
         <label>
@@ -1455,6 +1605,32 @@ document
     });
   });
   
+  document
+  .querySelectorAll(".trade-variant-select")
+  .forEach((select) => {
+    select.addEventListener("change", () => {
+      const index = Number(select.dataset.cardIndex);
+      const card =
+        select.closest("#yourTradeCards")
+          ? yourTradeCardData[index]
+          : theirTradeCardData[index];
+
+      if (!card) {
+        return;
+      }
+
+      const selectedVariant = card.priceVariants.find(
+        (variant) => variant.key === select.value
+      );
+
+      card.selectedVariantKey = selectedVariant?.key || "";
+      card.selectedVariantLabel =
+        selectedVariant?.label || "Market price unavailable";
+      card.rawPrice = selectedVariant?.marketPrice || 0;
+      updateTradeDisplay();
+    });
+  });
+
   document
   .querySelectorAll(".trade-card-type-select")
   .forEach((select) => {
