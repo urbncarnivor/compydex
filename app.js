@@ -299,8 +299,14 @@ async function searchCardsByName(name) {
   const cleanName =
     name.trim().toLowerCase();
 
+  const nameWords = cleanName
+    .split(/\s+/)
+    .filter(Boolean);
+
   const apiQuery =
-    `name:"${cleanName}"`;
+    nameWords.length === 1
+      ? `name:${cleanName}*`
+      : `name:"${cleanName}"`;
 
   const url =
     `/api/cards?q=${encodeURIComponent(apiQuery)}`;
@@ -334,7 +340,13 @@ async function searchCardsByName(name) {
 }
 
 function getScannedCollectorNumber(text) {
-  const match = text.match(/\d{1,4}(?:\s*\/\s*\d{1,4})?/);
+  const fractionMatch =
+    text.match(/\d{1,4}\s*\/\s*\d{1,4}/);
+
+  const standaloneMatch =
+    text.match(/\b\d{1,3}\b/);
+
+  const match = fractionMatch || standaloneMatch;
 
   return match
     ? match[0].replace(/\s+/g, "")
@@ -1418,44 +1430,58 @@ const nameCrop = makeOcrCrop(
   0.10
 );
 
-// Bottom-left area: collector number
-const numberCrop = makeOcrCrop(
+// Modern cards commonly place the collector number on the lower-left.
+const leftNumberCrop = makeOcrCrop(
   scannerPreview,
-  0.26,
+  0.12,
   0.84,
-  0.11,
-  0.05
+  0.30,
+  0.08
 );
 
-const numberContext =
-  numberCrop.getContext("2d");
+// Vintage cards commonly place the collector number on the lower-right.
+const rightNumberCrop = makeOcrCrop(
+  scannerPreview,
+  0.66,
+  0.84,
+  0.27,
+  0.08
+);
 
-const numberImage =
-  numberContext.getImageData(
+const prepareNumberCrop = (cropCanvas) => {
+  const numberContext =
+    cropCanvas.getContext("2d");
+
+  const numberImage =
+    numberContext.getImageData(
     0,
     0,
-    numberCrop.width,
-    numberCrop.height
+    cropCanvas.width,
+    cropCanvas.height
   );
 
-const pixels = numberImage.data;
+  const pixels = numberImage.data;
 
-for (let i = 0; i < pixels.length; i += 4) {
-  const gray =
-    pixels[i] * 0.299 +
-    pixels[i + 1] * 0.587 +
-    pixels[i + 2] * 0.114;
+  for (let i = 0; i < pixels.length; i += 4) {
+    const gray =
+      pixels[i] * 0.299 +
+      pixels[i + 1] * 0.587 +
+      pixels[i + 2] * 0.114;
 
-  pixels[i] = gray;
-  pixels[i + 1] = gray;
-  pixels[i + 2] = gray;
-}
+    pixels[i] = gray;
+    pixels[i + 1] = gray;
+    pixels[i + 2] = gray;
+  }
 
-numberContext.putImageData(
-  numberImage,
-  0,
-  0
-);
+  numberContext.putImageData(
+    numberImage,
+    0,
+    0
+  );
+};
+
+prepareNumberCrop(leftNumberCrop);
+prepareNumberCrop(rightNumberCrop);
        
 (async () => {
   let nameWorker;
@@ -1480,17 +1506,25 @@ numberContext.putImageData(
     const nameResult =
       await nameWorker.recognize(nameCrop);
 
-    const numberResult =
-      await numberWorker.recognize(numberCrop);
+    const leftNumberResult =
+      await numberWorker.recognize(leftNumberCrop);
+
+    const rightNumberResult =
+      await numberWorker.recognize(rightNumberCrop);
 
     const nameText =
       nameResult.data.text.trim();
 
-    const numberText =
-      numberResult.data.text.trim();
+    const numberText = [
+      leftNumberResult.data.text,
+      rightNumberResult.data.text,
+    ].join("\n").trim();
 
     const scannedName =
       getScannedCardName(nameText);
+
+    // Show what OCR detected even if the API request later fails.
+    searchInput.value = scannedName;
 
     const scanResult =
       await searchScannedCard(scannedName, numberText);
