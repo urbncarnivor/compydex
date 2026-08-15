@@ -450,8 +450,6 @@ async function findScannedCardsByName(names) {
     ),
   ].slice(0, 24);
 
-  let firstError = null;
-
   for (const candidate of candidates) {
     try {
       const cards = await searchCardsByName(candidate);
@@ -463,12 +461,10 @@ async function findScannedCardsByName(names) {
         };
       }
     } catch (error) {
-      firstError ||= error;
+      // A server/network failure will affect every candidate. Stop here
+      // instead of making the user wait through the entire fallback list.
+      throw error;
     }
-  }
-
-  if (firstError) {
-    throw firstError;
   }
 
   return {
@@ -1607,11 +1603,11 @@ prepareNumberCrop(rightNumberCrop);
     searchStatus.textContent = "Reading card...";
     searchResults.innerHTML = "";
 
-    nameWorker =
-      await Tesseract.createWorker("eng");
-
-    numberWorker =
-      await Tesseract.createWorker("eng");
+    [nameWorker, numberWorker] =
+      await Promise.all([
+        Tesseract.createWorker("eng"),
+        Tesseract.createWorker("eng"),
+      ]);
 
     await numberWorker.setParameters({
       tessedit_char_whitelist: "0123456789/",
@@ -1619,17 +1615,34 @@ prepareNumberCrop(rightNumberCrop);
         Tesseract.PSM.SINGLE_WORD,
     });
 
-    const primaryNameResult =
-      await nameWorker.recognize(primaryNameCrop);
+    const readNames = async () => {
+      const primary =
+        await nameWorker.recognize(primaryNameCrop);
+      const fallback =
+        await nameWorker.recognize(fallbackNameCrop);
 
-    const fallbackNameResult =
-      await nameWorker.recognize(fallbackNameCrop);
+      return [primary, fallback];
+    };
 
-    const leftNumberResult =
-      await numberWorker.recognize(leftNumberCrop);
+    const readNumbers = async () => {
+      const left =
+        await numberWorker.recognize(leftNumberCrop);
+      const right =
+        await numberWorker.recognize(rightNumberCrop);
 
-    const rightNumberResult =
-      await numberWorker.recognize(rightNumberCrop);
+      return [left, right];
+    };
+
+    const [nameResults, numberResults] =
+      await Promise.all([
+        readNames(),
+        readNumbers(),
+      ]);
+
+    const [primaryNameResult, fallbackNameResult] =
+      nameResults;
+    const [leftNumberResult, rightNumberResult] =
+      numberResults;
 
     const nameText = [
       primaryNameResult.data.text,
@@ -1677,7 +1690,8 @@ prepareNumberCrop(rightNumberCrop);
   } catch (error) {
     console.error("OCR ERROR:", error);
     searchStatus.textContent =
-      `Scan failed: ${error.message}`;
+      `Scan failed: ${error.message} ` +
+      "The detected name was kept—tap Search to retry.";
   } finally {
     await nameWorker?.terminate();
     await numberWorker?.terminate();
