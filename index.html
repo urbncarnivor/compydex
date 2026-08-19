@@ -10,7 +10,7 @@
 
   <title>CompyDex</title>
 
-  <link rel="stylesheet" href="styles.css?v=18">
+  <link rel="stylesheet" href="styles.css?v=19">
   <link rel="manifest" href="manifest.json">
 </head>
 
@@ -241,7 +241,7 @@
 
 </section>
 
-<section id="calculatorPanel" class="calculator-panel" aria-labelledby="calculatorTitle">
+<section id="calculatorPanel" class="calculator-panel is-collapsed" aria-labelledby="calculatorTitle">
   <div class="calculator-heading">
     <div>
       <p class="calculator-eyebrow">Card Show Tool</p>
@@ -261,11 +261,11 @@
         id="calculatorToggleButton"
         class="calculator-toggle-button"
         type="button"
-        aria-label="Minimize calculator"
-        aria-expanded="true"
+        aria-label="Expand calculator"
+        aria-expanded="false"
         aria-controls="calculatorBody"
       >
-        <span class="calculator-toggle-icon" aria-hidden="true">−</span>
+        <span class="calculator-toggle-icon" aria-hidden="true">+</span>
       </button>
     </div>
   </div>
@@ -304,7 +304,7 @@
   </div>
 </section>
 
-<section id="compAveragerPanel" class="calculator-panel comp-averager-panel" aria-labelledby="compAveragerTitle">
+<section id="compAveragerPanel" class="calculator-panel comp-averager-panel is-collapsed" aria-labelledby="compAveragerTitle">
   <div class="calculator-heading">
     <div>
       <p class="calculator-eyebrow">Card Show Tool</p>
@@ -324,11 +324,11 @@
         id="compAveragerToggleButton"
         class="calculator-toggle-button"
         type="button"
-        aria-label="Minimize Comp Averager"
-        aria-expanded="true"
+        aria-label="Expand Comp Averager"
+        aria-expanded="false"
         aria-controls="compAveragerBody"
       >
-        <span class="calculator-toggle-icon" aria-hidden="true">−</span>
+        <span class="calculator-toggle-icon" aria-hidden="true">+</span>
       </button>
     </div>
   </div>
@@ -467,7 +467,7 @@
 </div>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   
-  <script src="app.js?v=18"></script>
+  <script src="app.js?v=19"></script>
 
 </body>
 </html>
