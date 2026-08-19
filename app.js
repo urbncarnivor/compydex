@@ -85,6 +85,10 @@ const compAveragerTotal =
   document.getElementById("compAveragerTotal");
 const compAveragerAverage =
   document.getElementById("compAveragerAverage");
+const networkStatus = document.getElementById("networkStatus");
+const updateBanner = document.getElementById("updateBanner");
+const applyUpdateButton = document.getElementById("applyUpdateButton");
+const dismissUpdateButton = document.getElementById("dismissUpdateButton");
 
 let selectedCardMarketPrice = 0;
 let selectedCardData = null;
@@ -99,6 +103,93 @@ let calculatorValue = "0";
 let calculatorFirstOperand = null;
 let calculatorOperator = null;
 let calculatorWaitingForOperand = false;
+
+const WORKSPACE_STATE_KEY = "compydexWorkspaceV1";
+
+function saveWorkspaceState() {
+  try {
+    const state = {
+      trade: {
+        yourCards: yourTradeCardData,
+        theirCards: theirTradeCardData,
+        yourCash: yourCashAdjustment,
+        theirCash: theirCashAdjustment
+      },
+      calculator: {
+        value: calculatorValue,
+        firstOperand: calculatorFirstOperand,
+        operator: calculatorOperator,
+        waitingForOperand: calculatorWaitingForOperand,
+        history: calculatorHistory?.textContent?.trim() || ""
+      },
+      compAverager: {
+        values: compAveragerInputs.map((input) => input.value)
+      },
+      savedAt: new Date().toISOString()
+    };
+
+    localStorage.setItem(WORKSPACE_STATE_KEY, JSON.stringify(state));
+  } catch (error) {
+    console.warn("Could not save active CompyDex work:", error);
+  }
+}
+
+function restoreWorkspaceState() {
+  try {
+    const savedState = JSON.parse(
+      localStorage.getItem(WORKSPACE_STATE_KEY) || "null"
+    );
+
+    if (!savedState || typeof savedState !== "object") {
+      return;
+    }
+
+    const savedTrade = savedState.trade || {};
+    yourTradeCardData = Array.isArray(savedTrade.yourCards)
+      ? savedTrade.yourCards
+      : [];
+    theirTradeCardData = Array.isArray(savedTrade.theirCards)
+      ? savedTrade.theirCards
+      : [];
+    yourCashAdjustment = Number(savedTrade.yourCash) || 0;
+    theirCashAdjustment = Number(savedTrade.theirCash) || 0;
+
+    const savedCalculator = savedState.calculator || {};
+    if (typeof savedCalculator.value === "string") {
+      calculatorValue = savedCalculator.value;
+      calculatorFirstOperand = Number.isFinite(savedCalculator.firstOperand)
+        ? savedCalculator.firstOperand
+        : null;
+      calculatorOperator = ["+", "-", "*", "/"].includes(
+        savedCalculator.operator
+      )
+        ? savedCalculator.operator
+        : null;
+      calculatorWaitingForOperand = Boolean(
+        savedCalculator.waitingForOperand
+      );
+      calculatorDisplay.textContent = calculatorValue;
+      calculatorHistory.textContent = savedCalculator.history || "\u00a0";
+    }
+
+    const savedCompValues = savedState.compAverager?.values;
+    if (Array.isArray(savedCompValues)) {
+      compAveragerInputs.forEach((input, index) => {
+        input.value = typeof savedCompValues[index] === "string"
+          ? savedCompValues[index]
+          : "";
+      });
+
+      if (savedCompValues.some((value) => String(value).trim())) {
+        calculateCompAverage();
+      }
+    }
+
+    updateTradeDisplay();
+  } catch (error) {
+    console.warn("Could not restore active CompyDex work:", error);
+  }
+}
 
 const CALCULATOR_OPERATOR_LABELS = {
   "+": "+",
@@ -117,6 +208,7 @@ function normalizeCalculatorNumber(value) {
 
 function updateCalculatorDisplay() {
   calculatorDisplay.textContent = calculatorValue;
+  saveWorkspaceState();
 }
 
 function clearCalculator() {
@@ -402,6 +494,7 @@ function clearCompAverager() {
   });
   compAveragerMessage.innerHTML = "&nbsp;";
   resetCompAveragerResults();
+  saveWorkspaceState();
 }
 
 function calculateCompAverage() {
@@ -453,6 +546,7 @@ function calculateCompAverage() {
   compAveragerAverage.textContent = formatCompAveragerMoney(average);
   compAveragerMessage.textContent =
     `Average calculated from ${values.length} ${values.length === 1 ? "comp" : "comps"}.`;
+  saveWorkspaceState();
 }
 
 compAveragerToggleButton.addEventListener("click", () => {
@@ -473,6 +567,7 @@ compAveragerInputs.forEach((input) => {
     input.classList.remove("is-invalid");
     input.parentElement.classList.remove("is-invalid");
     input.removeAttribute("aria-invalid");
+    saveWorkspaceState();
   });
 });
 
@@ -2211,6 +2306,8 @@ theirTradeTotal.textContent =
         Math.abs(difference)
       )}`;
   }
+
+  saveWorkspaceState();
 }
 
 let scannerStream = null;
@@ -2963,7 +3060,7 @@ if (stableFrameCount >= 2) {
   stopAutoCapture();
 
   document
-    .getElementById("capturePhoto")
+  .getElementById("capturePhoto")
     .click();
 }
   
@@ -3071,5 +3168,72 @@ context.drawImage(
     scannerPreview.classList.remove("hidden");
 
     captureButton.textContent = "↩ Retake";
-    cancelButton.textContent = "✓ Use Photo";
+      cancelButton.textContent = "✓ Use Photo";
   });
+
+function updateNetworkStatus() {
+  networkStatus.hidden = navigator.onLine;
+  document.documentElement.classList.toggle("is-offline", !navigator.onLine);
+}
+
+window.addEventListener("online", updateNetworkStatus);
+window.addEventListener("offline", updateNetworkStatus);
+updateNetworkStatus();
+
+let pendingServiceWorker = null;
+let isReloadingForUpdate = false;
+
+function showUpdateReady(worker) {
+  pendingServiceWorker = worker;
+  updateBanner.hidden = false;
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      const registration = await navigator.serviceWorker.register(
+        "/service-worker.js",
+        { updateViaCache: "none" }
+      );
+
+      if (registration.waiting) {
+        showUpdateReady(registration.waiting);
+      }
+
+      registration.addEventListener("updatefound", () => {
+        const installingWorker = registration.installing;
+
+        installingWorker?.addEventListener("statechange", () => {
+          if (
+            installingWorker.state === "installed" &&
+            navigator.serviceWorker.controller
+          ) {
+            showUpdateReady(installingWorker);
+          }
+        });
+      });
+
+      applyUpdateButton.addEventListener("click", () => {
+        const worker = pendingServiceWorker || registration.waiting;
+        worker?.postMessage({ type: "SKIP_WAITING" });
+      });
+
+      dismissUpdateButton.addEventListener("click", () => {
+        updateBanner.hidden = true;
+      });
+    } catch (error) {
+      console.warn("CompyDex offline setup could not start:", error);
+    }
+  });
+
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (isReloadingForUpdate) {
+      return;
+    }
+
+    isReloadingForUpdate = true;
+    window.location.reload();
+  });
+}
+
+restoreWorkspaceState();

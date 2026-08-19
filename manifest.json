@@ -1,9 +1,35 @@
 {
-  "name": "CompyDex",
+  "id": "/",
+  "name": "CompyDex Card Show Tool",
   "short_name": "CompyDex",
-  "description": "Know the Value. Make the Deal.",
-  "start_url": "/",
+  "description": "Scan, compare, price, and trade cards at the show.",
+  "lang": "en-US",
+  "start_url": "/?source=pwa",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#111111",
-  "theme_color": "#111111"
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0b1220",
+  "theme_color": "#111827",
+  "categories": ["utilities", "shopping", "productivity"],
+  "icons": [
+    {
+      "src": "/assets/icons/compydex-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/compydex-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/assets/icons/compydex-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
 }

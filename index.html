@@ -9,14 +9,31 @@
   >
 
   <meta name="theme-color" content="#111827">
+  <meta name="application-name" content="CompyDex">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="CompyDex">
+  <meta name="mobile-web-app-capable" content="yes">
 
   <title>CompyDex</title>
 
-  <link rel="stylesheet" href="styles.css?v=20">
+  <link rel="stylesheet" href="styles.css?v=21">
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/compydex-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/compydex-apple-touch-180.png">
 </head>
 
 <body>
+
+  <div id="networkStatus" class="pwa-status-banner" role="status" aria-live="polite" hidden>
+    <span>Offline — saved tools and your active trade still work.</span>
+  </div>
+
+  <div id="updateBanner" class="pwa-update-banner" role="status" aria-live="polite" hidden>
+    <span>A CompyDex update is ready.</span>
+    <button id="applyUpdateButton" type="button">Update</button>
+    <button id="dismissUpdateButton" class="pwa-update-later" type="button">Later</button>
+  </div>
 
   <main class="container">
 
@@ -469,7 +486,7 @@
 </div>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   
-  <script src="app.js?v=20"></script>
+  <script src="app.js?v=21"></script>
 
 </body>
 </html>
