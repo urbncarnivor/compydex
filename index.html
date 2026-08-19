@@ -10,7 +10,7 @@
 
   <title>CompyDex</title>
 
-  <link rel="stylesheet" href="styles.css?v=17">
+  <link rel="stylesheet" href="styles.css?v=18">
   <link rel="manifest" href="manifest.json">
 </head>
 
@@ -303,6 +303,88 @@
     </div>
   </div>
 </section>
+
+<section id="compAveragerPanel" class="calculator-panel comp-averager-panel" aria-labelledby="compAveragerTitle">
+  <div class="calculator-heading">
+    <div>
+      <p class="calculator-eyebrow">Card Show Tool</p>
+      <h2 id="compAveragerTitle">📊 Comp Averager</h2>
+    </div>
+
+    <div class="calculator-heading-actions">
+      <button
+        id="compAveragerClearButton"
+        class="calculator-clear-button"
+        type="button"
+      >
+        Clear
+      </button>
+
+      <button
+        id="compAveragerToggleButton"
+        class="calculator-toggle-button"
+        type="button"
+        aria-label="Minimize Comp Averager"
+        aria-expanded="true"
+        aria-controls="compAveragerBody"
+      >
+        <span class="calculator-toggle-icon" aria-hidden="true">−</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="compAveragerBody" class="calculator-body comp-averager-body">
+    <p class="comp-averager-help">
+      Enter up to 5 sold prices. Blank boxes are ignored.
+    </p>
+
+    <form id="compAveragerForm" novalidate>
+      <div class="comp-averager-inputs">
+        <label class="comp-averager-input-wrap">
+          <span>Comp 1</span>
+          <span class="comp-averager-price-field"><span aria-hidden="true">$</span><input class="comp-averager-input" type="text" inputmode="decimal" autocomplete="off" aria-label="Comp 1 price"></span>
+        </label>
+        <label class="comp-averager-input-wrap">
+          <span>Comp 2</span>
+          <span class="comp-averager-price-field"><span aria-hidden="true">$</span><input class="comp-averager-input" type="text" inputmode="decimal" autocomplete="off" aria-label="Comp 2 price"></span>
+        </label>
+        <label class="comp-averager-input-wrap">
+          <span>Comp 3</span>
+          <span class="comp-averager-price-field"><span aria-hidden="true">$</span><input class="comp-averager-input" type="text" inputmode="decimal" autocomplete="off" aria-label="Comp 3 price"></span>
+        </label>
+        <label class="comp-averager-input-wrap">
+          <span>Comp 4</span>
+          <span class="comp-averager-price-field"><span aria-hidden="true">$</span><input class="comp-averager-input" type="text" inputmode="decimal" autocomplete="off" aria-label="Comp 4 price"></span>
+        </label>
+        <label class="comp-averager-input-wrap">
+          <span>Comp 5</span>
+          <span class="comp-averager-price-field"><span aria-hidden="true">$</span><input class="comp-averager-input" type="text" inputmode="decimal" autocomplete="off" aria-label="Comp 5 price"></span>
+        </label>
+      </div>
+
+      <p id="compAveragerMessage" class="comp-averager-message" aria-live="polite">&nbsp;</p>
+
+      <button class="comp-averager-calculate-button" type="submit">
+        Calculate Average
+      </button>
+    </form>
+
+    <div class="comp-averager-results" aria-live="polite">
+      <div>
+        <span>Comps Used</span>
+        <strong id="compAveragerCount">0</strong>
+      </div>
+      <div>
+        <span>Total</span>
+        <strong id="compAveragerTotal">$0.00</strong>
+      </div>
+      <div class="comp-averager-average">
+        <span>Average Comp</span>
+        <strong id="compAveragerAverage">$0.00</strong>
+      </div>
+    </div>
+  </div>
+</section>
    
 
     <footer>
@@ -385,7 +467,7 @@
 </div>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   
-  <script src="app.js?v=17"></script>
+  <script src="app.js?v=18"></script>
 
 </body>
 </html>

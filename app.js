@@ -67,6 +67,24 @@ const calculatorPanel =
   document.getElementById("calculatorPanel");
 const calculatorToggleButton =
   document.getElementById("calculatorToggleButton");
+const compAveragerPanel =
+  document.getElementById("compAveragerPanel");
+const compAveragerToggleButton =
+  document.getElementById("compAveragerToggleButton");
+const compAveragerClearButton =
+  document.getElementById("compAveragerClearButton");
+const compAveragerForm =
+  document.getElementById("compAveragerForm");
+const compAveragerInputs =
+  Array.from(document.querySelectorAll(".comp-averager-input"));
+const compAveragerMessage =
+  document.getElementById("compAveragerMessage");
+const compAveragerCount =
+  document.getElementById("compAveragerCount");
+const compAveragerTotal =
+  document.getElementById("compAveragerTotal");
+const compAveragerAverage =
+  document.getElementById("compAveragerAverage");
 
 let selectedCardMarketPrice = 0;
 let selectedCardData = null;
@@ -343,6 +361,119 @@ calculatorToggleButton.addEventListener("click", () => {
   setCalculatorCollapsed(
     !calculatorPanel.classList.contains("is-collapsed")
   );
+});
+
+function setCompAveragerCollapsed(isCollapsed) {
+  compAveragerPanel.classList.toggle("is-collapsed", isCollapsed);
+  compAveragerToggleButton.setAttribute(
+    "aria-expanded",
+    String(!isCollapsed)
+  );
+  compAveragerToggleButton.querySelector(
+    ".calculator-toggle-icon"
+  ).textContent = isCollapsed ? "+" : "−";
+  compAveragerToggleButton.setAttribute(
+    "aria-label",
+    isCollapsed ? "Expand Comp Averager" : "Minimize Comp Averager"
+  );
+}
+
+function formatCompAveragerMoney(value) {
+  return value.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}
+
+function resetCompAveragerResults() {
+  compAveragerCount.textContent = "0";
+  compAveragerTotal.textContent = "$0.00";
+  compAveragerAverage.textContent = "$0.00";
+}
+
+function clearCompAverager() {
+  compAveragerInputs.forEach((input) => {
+    input.value = "";
+    input.classList.remove("is-invalid");
+    input.parentElement.classList.remove("is-invalid");
+    input.removeAttribute("aria-invalid");
+  });
+  compAveragerMessage.innerHTML = "&nbsp;";
+  resetCompAveragerResults();
+}
+
+function calculateCompAverage() {
+  const values = [];
+  let hasInvalidInput = false;
+
+  compAveragerInputs.forEach((input) => {
+    const rawValue = input.value.trim();
+    input.classList.remove("is-invalid");
+    input.parentElement.classList.remove("is-invalid");
+    input.removeAttribute("aria-invalid");
+
+    if (!rawValue) {
+      return;
+    }
+
+    const parsedValue = Number(rawValue.replace(/[$,\s]/g, ""));
+
+    if (!Number.isFinite(parsedValue) || parsedValue < 0) {
+      input.classList.add("is-invalid");
+      input.parentElement.classList.add("is-invalid");
+      input.setAttribute("aria-invalid", "true");
+      hasInvalidInput = true;
+      return;
+    }
+
+    values.push(parsedValue);
+  });
+
+  if (hasInvalidInput) {
+    compAveragerMessage.textContent =
+      "Check the highlighted price and try again.";
+    resetCompAveragerResults();
+    return;
+  }
+
+  if (values.length === 0) {
+    compAveragerMessage.textContent =
+      "Enter at least one sold price.";
+    resetCompAveragerResults();
+    return;
+  }
+
+  const total = values.reduce((sum, value) => sum + value, 0);
+  const average = total / values.length;
+
+  compAveragerCount.textContent = String(values.length);
+  compAveragerTotal.textContent = formatCompAveragerMoney(total);
+  compAveragerAverage.textContent = formatCompAveragerMoney(average);
+  compAveragerMessage.textContent =
+    `Average calculated from ${values.length} ${values.length === 1 ? "comp" : "comps"}.`;
+}
+
+compAveragerToggleButton.addEventListener("click", () => {
+  setCompAveragerCollapsed(
+    !compAveragerPanel.classList.contains("is-collapsed")
+  );
+});
+
+compAveragerClearButton.addEventListener("click", clearCompAverager);
+
+compAveragerForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  calculateCompAverage();
+});
+
+compAveragerInputs.forEach((input) => {
+  input.addEventListener("input", () => {
+    input.classList.remove("is-invalid");
+    input.parentElement.classList.remove("is-invalid");
+    input.removeAttribute("aria-invalid");
+  });
 });
 
 document.addEventListener("keydown", (event) => {

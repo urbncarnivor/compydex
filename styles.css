@@ -1084,9 +1084,144 @@ box-sizing: border-box;
   grid-column: span 2;
 }
 
+/* ===========================
+   Comp Averager
+=========================== */
+
+.comp-averager-panel {
+  margin-top: 18px;
+}
+
+.comp-averager-help {
+  margin: 0 0 14px;
+  color: #aab7ca;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.comp-averager-inputs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.comp-averager-input-wrap {
+  display: grid;
+  gap: 6px;
+  color: #e5e7eb;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.comp-averager-input-wrap:last-child {
+  grid-column: 1 / -1;
+}
+
+.comp-averager-price-field {
+  display: flex;
+  align-items: center;
+  min-height: 52px;
+  padding-left: 14px;
+  color: #a78bfa;
+  background: #0f172a;
+  border: 1px solid #475569;
+  border-radius: 12px;
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.comp-averager-input {
+  width: 100%;
+  min-width: 0;
+  min-height: 50px;
+  margin: 0;
+  padding: 10px 12px 10px 5px;
+  color: #ffffff;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  font-size: 18px;
+  box-shadow: none;
+}
+
+.comp-averager-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+.comp-averager-price-field:focus-within {
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.18);
+}
+
+.comp-averager-price-field.is-invalid {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.14);
+}
+
+.comp-averager-message {
+  min-height: 21px;
+  margin: 10px 0 8px;
+  color: #aab7ca;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.comp-averager-calculate-button {
+  min-height: 54px;
+  margin: 0;
+  background: linear-gradient(135deg, #7c3aed, #8b5cf6);
+  border-color: #a78bfa;
+  font-size: 17px;
+}
+
+.comp-averager-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.comp-averager-results > div {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  background: #0f172a;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  border-radius: 12px;
+}
+
+.comp-averager-results span {
+  color: #94a3b8;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.comp-averager-results strong {
+  color: #ffffff;
+  font-size: 19px;
+}
+
+.comp-averager-results .comp-averager-average {
+  grid-column: 1 / -1;
+  padding-block: 15px;
+  text-align: center;
+  border-color: rgba(139, 92, 246, 0.52);
+}
+
+.comp-averager-average strong {
+  color: #a78bfa;
+  font-size: 30px;
+}
+
 @media (max-width: 370px) {
   .calculator-panel {
     padding: 14px;
+  }
+
+  .comp-averager-panel .calculator-heading h2 {
+    font-size: 20px;
   }
 
   .calculator-keypad {
@@ -1095,6 +1230,14 @@ box-sizing: border-box;
 
   .calculator-key {
     min-height: 52px;
+  }
+
+  .comp-averager-inputs {
+    grid-template-columns: 1fr;
+  }
+
+  .comp-averager-input-wrap:last-child {
+    grid-column: auto;
   }
 
 }
