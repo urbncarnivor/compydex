@@ -57,6 +57,12 @@ const tradeDifference =
 
 const tradeStatus =
   document.getElementById("tradeStatus");
+const calculatorDisplay =
+  document.getElementById("calculatorDisplay");
+const calculatorHistory =
+  document.getElementById("calculatorHistory");
+const calculatorClearButton =
+  document.getElementById("calculatorClearButton");
 
 let selectedCardMarketPrice = 0;
 let selectedCardData = null;
@@ -66,6 +72,283 @@ let yourTradeCardData = [];
 let theirTradeCardData = [];
 let yourCashAdjustment = 0;
 let theirCashAdjustment = 0;
+
+let calculatorValue = "0";
+let calculatorFirstOperand = null;
+let calculatorOperator = null;
+let calculatorWaitingForOperand = false;
+
+const CALCULATOR_OPERATOR_LABELS = {
+  "+": "+",
+  "-": "−",
+  "*": "×",
+  "/": "÷"
+};
+
+function normalizeCalculatorNumber(value) {
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+
+  return Number(value.toPrecision(12));
+}
+
+function updateCalculatorDisplay() {
+  calculatorDisplay.textContent = calculatorValue;
+}
+
+function clearCalculator() {
+  calculatorValue = "0";
+  calculatorFirstOperand = null;
+  calculatorOperator = null;
+  calculatorWaitingForOperand = false;
+  calculatorHistory.innerHTML = "&nbsp;";
+  updateCalculatorDisplay();
+}
+
+function inputCalculatorDigit(digit) {
+  if (calculatorValue === "Error" || calculatorWaitingForOperand) {
+    calculatorValue = digit;
+    calculatorWaitingForOperand = false;
+  } else if (calculatorValue === "0") {
+    calculatorValue = digit;
+  } else if (calculatorValue.length < 14) {
+    calculatorValue += digit;
+  }
+
+  updateCalculatorDisplay();
+}
+
+function inputCalculatorDecimal() {
+  if (calculatorValue === "Error" || calculatorWaitingForOperand) {
+    calculatorValue = "0.";
+    calculatorWaitingForOperand = false;
+  } else if (!calculatorValue.includes(".")) {
+    calculatorValue += ".";
+  }
+
+  updateCalculatorDisplay();
+}
+
+function calculateCalculatorResult(firstValue, secondValue, operator) {
+  if (operator === "+") {
+    return firstValue + secondValue;
+  }
+
+  if (operator === "-") {
+    return firstValue - secondValue;
+  }
+
+  if (operator === "*") {
+    return firstValue * secondValue;
+  }
+
+  if (operator === "/") {
+    return secondValue === 0 ? null : firstValue / secondValue;
+  }
+
+  return secondValue;
+}
+
+function setCalculatorError() {
+  calculatorValue = "Error";
+  calculatorFirstOperand = null;
+  calculatorOperator = null;
+  calculatorWaitingForOperand = true;
+  calculatorHistory.textContent = "Cannot divide by zero";
+  updateCalculatorDisplay();
+}
+
+function chooseCalculatorOperator(nextOperator) {
+  const inputValue = Number(calculatorValue);
+
+  if (!Number.isFinite(inputValue)) {
+    clearCalculator();
+    return;
+  }
+
+  if (calculatorOperator && calculatorWaitingForOperand) {
+    calculatorOperator = nextOperator;
+    calculatorHistory.textContent =
+      `${calculatorValue} ${CALCULATOR_OPERATOR_LABELS[nextOperator]}`;
+    return;
+  }
+
+  if (calculatorFirstOperand === null) {
+    calculatorFirstOperand = inputValue;
+  } else if (calculatorOperator) {
+    const result = calculateCalculatorResult(
+      calculatorFirstOperand,
+      inputValue,
+      calculatorOperator
+    );
+
+    if (result === null) {
+      setCalculatorError();
+      return;
+    }
+
+    const normalizedResult = normalizeCalculatorNumber(result);
+    calculatorValue = String(normalizedResult);
+    calculatorFirstOperand = normalizedResult;
+    updateCalculatorDisplay();
+  }
+
+  calculatorOperator = nextOperator;
+  calculatorWaitingForOperand = true;
+  calculatorHistory.textContent =
+    `${calculatorValue} ${CALCULATOR_OPERATOR_LABELS[nextOperator]}`;
+}
+
+function finishCalculatorEquation() {
+  if (calculatorOperator === null || calculatorFirstOperand === null) {
+    return;
+  }
+
+  const secondOperand = Number(calculatorValue);
+  const firstOperand = calculatorFirstOperand;
+  const operator = calculatorOperator;
+  const result = calculateCalculatorResult(
+    firstOperand,
+    secondOperand,
+    operator
+  );
+
+  if (result === null) {
+    setCalculatorError();
+    return;
+  }
+
+  const normalizedResult = normalizeCalculatorNumber(result);
+
+  calculatorHistory.textContent =
+    `${firstOperand} ${CALCULATOR_OPERATOR_LABELS[operator]} ${secondOperand} =`;
+  calculatorValue = String(normalizedResult);
+  calculatorFirstOperand = null;
+  calculatorOperator = null;
+  calculatorWaitingForOperand = true;
+  updateCalculatorDisplay();
+}
+
+function applyCalculatorPercent() {
+  const inputValue = Number(calculatorValue);
+
+  if (!Number.isFinite(inputValue)) {
+    clearCalculator();
+    return;
+  }
+
+  let percentValue = inputValue / 100;
+
+  if (
+    calculatorFirstOperand !== null &&
+    (calculatorOperator === "+" || calculatorOperator === "-")
+  ) {
+    percentValue = calculatorFirstOperand * percentValue;
+  }
+
+  calculatorValue = String(normalizeCalculatorNumber(percentValue));
+  calculatorWaitingForOperand = false;
+  updateCalculatorDisplay();
+}
+
+function toggleCalculatorSign() {
+  const inputValue = Number(calculatorValue);
+
+  if (!Number.isFinite(inputValue) || inputValue === 0) {
+    return;
+  }
+
+  calculatorValue = String(normalizeCalculatorNumber(inputValue * -1));
+  updateCalculatorDisplay();
+}
+
+function backspaceCalculator() {
+  if (calculatorWaitingForOperand || calculatorValue === "Error") {
+    return;
+  }
+
+  calculatorValue =
+    calculatorValue.length > 1
+      ? calculatorValue.slice(0, -1)
+      : "0";
+
+  if (calculatorValue === "-") {
+    calculatorValue = "0";
+  }
+
+  updateCalculatorDisplay();
+}
+
+function handleCalculatorAction(action) {
+  if (action === "decimal") {
+    inputCalculatorDecimal();
+  } else if (action === "equals") {
+    finishCalculatorEquation();
+  } else if (action === "percent") {
+    applyCalculatorPercent();
+  } else if (action === "toggle-sign") {
+    toggleCalculatorSign();
+  } else if (action === "backspace") {
+    backspaceCalculator();
+  }
+}
+
+document
+  .querySelectorAll("[data-calculator-digit]")
+  .forEach((button) => {
+    button.addEventListener("click", () => {
+      inputCalculatorDigit(button.dataset.calculatorDigit);
+    });
+  });
+
+document
+  .querySelectorAll("[data-calculator-operator]")
+  .forEach((button) => {
+    button.addEventListener("click", () => {
+      chooseCalculatorOperator(button.dataset.calculatorOperator);
+    });
+  });
+
+document
+  .querySelectorAll("[data-calculator-action]")
+  .forEach((button) => {
+    button.addEventListener("click", () => {
+      handleCalculatorAction(button.dataset.calculatorAction);
+    });
+  });
+
+calculatorClearButton.addEventListener("click", clearCalculator);
+
+document.addEventListener("keydown", (event) => {
+  const activeElement = document.activeElement;
+  const isEditingField =
+    activeElement?.matches("input, select, textarea");
+
+  if (isEditingField) {
+    return;
+  }
+
+  if (/^\d$/.test(event.key)) {
+    inputCalculatorDigit(event.key);
+  } else if (["+", "-", "*", "/"].includes(event.key)) {
+    chooseCalculatorOperator(event.key);
+  } else if (event.key === ".") {
+    inputCalculatorDecimal();
+  } else if (event.key === "%") {
+    applyCalculatorPercent();
+  } else if (event.key === "Enter" || event.key === "=") {
+    finishCalculatorEquation();
+  } else if (event.key === "Backspace") {
+    backspaceCalculator();
+  } else if (event.key === "Escape") {
+    clearCalculator();
+  } else {
+    return;
+  }
+
+  event.preventDefault();
+});
 
 tradeModeButton.addEventListener("click", () => {
   tradePanel.classList.remove("hidden");
