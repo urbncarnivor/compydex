@@ -10,7 +10,7 @@
 
   <title>CompyDex</title>
 
-  <link rel="stylesheet" href="styles.css?v=16">
+  <link rel="stylesheet" href="styles.css?v=17">
   <link rel="manifest" href="manifest.json">
 </head>
 
@@ -248,44 +248,59 @@
       <h2 id="calculatorTitle">🧮 Calculator</h2>
     </div>
 
-    <button
-      id="calculatorClearButton"
-      class="calculator-clear-button"
-      type="button"
-    >
-      Clear
-    </button>
+    <div class="calculator-heading-actions">
+      <button
+        id="calculatorClearButton"
+        class="calculator-clear-button"
+        type="button"
+      >
+        Clear
+      </button>
+
+      <button
+        id="calculatorToggleButton"
+        class="calculator-toggle-button"
+        type="button"
+        aria-label="Minimize calculator"
+        aria-expanded="true"
+        aria-controls="calculatorBody"
+      >
+        <span class="calculator-toggle-icon" aria-hidden="true">−</span>
+      </button>
+    </div>
   </div>
 
-  <div class="calculator-screen" aria-live="polite">
-    <div id="calculatorHistory" class="calculator-history">&nbsp;</div>
-    <output id="calculatorDisplay" class="calculator-display">0</output>
-  </div>
+  <div id="calculatorBody" class="calculator-body">
+    <div class="calculator-screen" aria-live="polite">
+      <div id="calculatorHistory" class="calculator-history">&nbsp;</div>
+      <output id="calculatorDisplay" class="calculator-display">0</output>
+    </div>
 
-  <div class="calculator-keypad" aria-label="Calculator keypad">
-    <button type="button" class="calculator-key calculator-key-secondary" data-calculator-action="toggle-sign">+/−</button>
-    <button type="button" class="calculator-key calculator-key-secondary" data-calculator-action="percent">%</button>
-    <button type="button" class="calculator-key calculator-key-secondary" data-calculator-action="backspace" aria-label="Backspace">⌫</button>
-    <button type="button" class="calculator-key calculator-key-operator" data-calculator-operator="/">÷</button>
+    <div class="calculator-keypad" aria-label="Calculator keypad">
+      <button type="button" class="calculator-key calculator-key-secondary" data-calculator-action="toggle-sign">+/−</button>
+      <button type="button" class="calculator-key calculator-key-secondary" data-calculator-action="percent">%</button>
+      <button type="button" class="calculator-key calculator-key-secondary" data-calculator-action="backspace" aria-label="Backspace">⌫</button>
+      <button type="button" class="calculator-key calculator-key-operator" data-calculator-operator="/">÷</button>
 
-    <button type="button" class="calculator-key" data-calculator-digit="7">7</button>
-    <button type="button" class="calculator-key" data-calculator-digit="8">8</button>
-    <button type="button" class="calculator-key" data-calculator-digit="9">9</button>
-    <button type="button" class="calculator-key calculator-key-operator" data-calculator-operator="*">×</button>
+      <button type="button" class="calculator-key" data-calculator-digit="7">7</button>
+      <button type="button" class="calculator-key" data-calculator-digit="8">8</button>
+      <button type="button" class="calculator-key" data-calculator-digit="9">9</button>
+      <button type="button" class="calculator-key calculator-key-operator" data-calculator-operator="*">×</button>
 
-    <button type="button" class="calculator-key" data-calculator-digit="4">4</button>
-    <button type="button" class="calculator-key" data-calculator-digit="5">5</button>
-    <button type="button" class="calculator-key" data-calculator-digit="6">6</button>
-    <button type="button" class="calculator-key calculator-key-operator" data-calculator-operator="-">−</button>
+      <button type="button" class="calculator-key" data-calculator-digit="4">4</button>
+      <button type="button" class="calculator-key" data-calculator-digit="5">5</button>
+      <button type="button" class="calculator-key" data-calculator-digit="6">6</button>
+      <button type="button" class="calculator-key calculator-key-operator" data-calculator-operator="-">−</button>
 
-    <button type="button" class="calculator-key" data-calculator-digit="1">1</button>
-    <button type="button" class="calculator-key" data-calculator-digit="2">2</button>
-    <button type="button" class="calculator-key" data-calculator-digit="3">3</button>
-    <button type="button" class="calculator-key calculator-key-operator" data-calculator-operator="+">+</button>
+      <button type="button" class="calculator-key" data-calculator-digit="1">1</button>
+      <button type="button" class="calculator-key" data-calculator-digit="2">2</button>
+      <button type="button" class="calculator-key" data-calculator-digit="3">3</button>
+      <button type="button" class="calculator-key calculator-key-operator" data-calculator-operator="+">+</button>
 
-    <button type="button" class="calculator-key calculator-key-zero" data-calculator-digit="0">0</button>
-    <button type="button" class="calculator-key" data-calculator-action="decimal">.</button>
-    <button type="button" class="calculator-key calculator-key-equals" data-calculator-action="equals">=</button>
+      <button type="button" class="calculator-key calculator-key-zero" data-calculator-digit="0">0</button>
+      <button type="button" class="calculator-key" data-calculator-action="decimal">.</button>
+      <button type="button" class="calculator-key calculator-key-equals" data-calculator-action="equals">=</button>
+    </div>
   </div>
 </section>
    
@@ -370,7 +385,7 @@
 </div>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   
-  <script src="app.js?v=16"></script>
+  <script src="app.js?v=17"></script>
 
 </body>
 </html>

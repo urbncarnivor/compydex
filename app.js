@@ -63,6 +63,10 @@ const calculatorHistory =
   document.getElementById("calculatorHistory");
 const calculatorClearButton =
   document.getElementById("calculatorClearButton");
+const calculatorPanel =
+  document.getElementById("calculatorPanel");
+const calculatorToggleButton =
+  document.getElementById("calculatorToggleButton");
 
 let selectedCardMarketPrice = 0;
 let selectedCardData = null;
@@ -319,6 +323,27 @@ document
   });
 
 calculatorClearButton.addEventListener("click", clearCalculator);
+
+function setCalculatorCollapsed(isCollapsed) {
+  calculatorPanel.classList.toggle("is-collapsed", isCollapsed);
+  calculatorToggleButton.setAttribute(
+    "aria-expanded",
+    String(!isCollapsed)
+  );
+  calculatorToggleButton.querySelector(
+    ".calculator-toggle-icon"
+  ).textContent = isCollapsed ? "+" : "−";
+  calculatorToggleButton.setAttribute(
+    "aria-label",
+    isCollapsed ? "Expand calculator" : "Minimize calculator"
+  );
+}
+
+calculatorToggleButton.addEventListener("click", () => {
+  setCalculatorCollapsed(
+    !calculatorPanel.classList.contains("is-collapsed")
+  );
+});
 
 document.addEventListener("keydown", (event) => {
   const activeElement = document.activeElement;
