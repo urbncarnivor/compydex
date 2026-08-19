@@ -1,18 +1,18 @@
-const CACHE_VERSION = "compydex-v21";
+const CACHE_VERSION = "compydex-v22";
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const CARD_IMAGE_CACHE = `${CACHE_VERSION}-card-images`;
 
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/styles.css?v=21",
+  "/styles.css?v=22",
   "/app.js?v=21",
   "/manifest.json",
   "/offline.html",
-  "/assets/icons/compydex-192.png",
-  "/assets/icons/compydex-512.png",
-  "/assets/icons/compydex-maskable-512.png",
-  "/assets/icons/compydex-apple-touch-180.png"
+  "/assets/icons/compydex-cyber-192.png",
+  "/assets/icons/compydex-cyber-512.png",
+  "/assets/icons/compydex-cyber-maskable-512.png",
+  "/assets/icons/compydex-cyber-apple-touch-180.png"
 ];
 
 self.addEventListener("install", (event) => {
