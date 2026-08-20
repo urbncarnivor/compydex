@@ -6,6 +6,7 @@ const searchForm = document.getElementById("searchForm");
 const searchInput = document.getElementById("searchInput");
 const searchStatus = document.getElementById("searchStatus");
 const searchResults = document.getElementById("searchResults");
+const searchSuggestions = document.getElementById("searchSuggestions");
 
 const cardDetailPanel = document.getElementById("cardDetailPanel");
 const closeDetailButton = document.getElementById("closeDetailButton");
@@ -94,6 +95,11 @@ let selectedCardMarketPrice = 0;
 let selectedCardData = null;
 let activeTradeSide = null;
 let currentSearchCards = [];
+let cardAutocompleteIndex = [];
+let autocompleteLoadPromise = null;
+let autocompleteMatches = [];
+let activeAutocompleteIndex = -1;
+let autocompleteTimer = null;
 let yourTradeCardData = [];
 let theirTradeCardData = [];
 let yourCashAdjustment = 0;
@@ -692,6 +698,7 @@ updateCardTypeFields();
 function resetCompletedSearch() {
   cardDetailPanel.classList.add("hidden");
 
+  hideAutocompleteSuggestions();
   searchInput.value = "";
   searchStatus.textContent = "";
   searchResults.replaceChildren();
@@ -706,12 +713,341 @@ function resetCompletedSearch() {
   selectedCardImage.alt = "Selected card";
 }
 
+function normalizeAutocompleteText(value) {
+  return String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+
+function normalizeCollectorNumber(value) {
+  return normalizeAutocompleteText(value)
+    .replace(/^0+(?=\d)/, "");
+}
+
+async function loadAutocompleteIndex() {
+  if (cardAutocompleteIndex.length > 0) {
+    return cardAutocompleteIndex;
+  }
+
+  if (!autocompleteLoadPromise) {
+    autocompleteLoadPromise = fetch("/assets/data/card-index.json?v=25", {
+      cache: "force-cache"
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`Card index error ${response.status}`);
+        }
+
+        return response.json();
+      })
+      .then((payload) => {
+        cardAutocompleteIndex = (payload.cards || []).map((card) => {
+          const normalizedName = normalizeAutocompleteText(card[1]);
+
+          return {
+            card,
+            normalizedName,
+            nameWords: normalizedName.split(/\s+/),
+            normalizedNumber: normalizeCollectorNumber(card[3])
+          };
+        });
+
+        return cardAutocompleteIndex;
+      })
+      .catch((error) => {
+        autocompleteLoadPromise = null;
+        console.error("Autocomplete index unavailable", error);
+        return [];
+      });
+  }
+
+  return autocompleteLoadPromise;
+}
+
+function parseAutocompleteQuery(value) {
+  const words = normalizeAutocompleteText(value)
+    .split(/\s+/)
+    .filter(Boolean);
+  let numberQuery = "";
+
+  if (
+    words.length > 1 &&
+    /^(?:[a-z]{0,4})?\d{1,4}[a-z]?(?:\/\d{1,4})?$/.test(words.at(-1))
+  ) {
+    numberQuery = normalizeCollectorNumber(words.pop().split("/")[0]);
+  }
+
+  return {
+    nameQuery: words.join(" "),
+    nameWords: words,
+    numberQuery
+  };
+}
+
+function matchesNameWords(cardNameWords, queryWords) {
+  let cardWordIndex = 0;
+
+  return queryWords.every((queryWord) => {
+    while (cardWordIndex < cardNameWords.length) {
+      const cardWord = cardNameWords[cardWordIndex];
+      cardWordIndex += 1;
+
+      if (cardWord.startsWith(queryWord)) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+}
+
+function findAutocompleteMatches(query) {
+  const parsedQuery = parseAutocompleteQuery(query);
+
+  if (parsedQuery.nameQuery.length < 2) {
+    return [];
+  }
+
+  const matches = cardAutocompleteIndex
+    .filter((entry) => {
+      const nameMatches = matchesNameWords(
+        entry.nameWords,
+        parsedQuery.nameWords
+      );
+      const numberMatches = !parsedQuery.numberQuery ||
+        entry.normalizedNumber.startsWith(parsedQuery.numberQuery);
+
+      return nameMatches && numberMatches;
+    })
+    .sort((a, b) => {
+      const aExact = a.normalizedName === parsedQuery.nameQuery;
+      const bExact = b.normalizedName === parsedQuery.nameQuery;
+
+      if (aExact !== bExact) {
+        return Number(bExact) - Number(aExact);
+      }
+
+      const aPrefix = a.normalizedName.startsWith(parsedQuery.nameQuery);
+      const bPrefix = b.normalizedName.startsWith(parsedQuery.nameQuery);
+
+      if (aPrefix !== bPrefix) {
+        return Number(bPrefix) - Number(aPrefix);
+      }
+
+      return b.card[5].localeCompare(a.card[5]);
+    });
+
+  const hasExactName = matches.some(
+    (entry) => entry.normalizedName === parsedQuery.nameQuery
+  );
+
+  if (parsedQuery.numberQuery || hasExactName) {
+    return matches.slice(0, 8).map((entry) => entry.card);
+  }
+
+  const seenNames = new Set();
+  const diverseMatches = [];
+
+  for (const entry of matches) {
+    if (seenNames.has(entry.normalizedName)) {
+      continue;
+    }
+
+    seenNames.add(entry.normalizedName);
+    diverseMatches.push(entry.card);
+
+    if (diverseMatches.length === 8) {
+      break;
+    }
+  }
+
+  return diverseMatches;
+}
+
+function hideAutocompleteSuggestions() {
+  clearTimeout(autocompleteTimer);
+  autocompleteMatches = [];
+  activeAutocompleteIndex = -1;
+  searchSuggestions.replaceChildren();
+  searchSuggestions.hidden = true;
+  searchInput.removeAttribute("aria-activedescendant");
+  searchInput.setAttribute("aria-expanded", "false");
+}
+
+function setActiveAutocompleteIndex(index) {
+  const buttons = Array.from(
+    searchSuggestions.querySelectorAll(".search-suggestion")
+  );
+
+  if (buttons.length === 0) {
+    return;
+  }
+
+  activeAutocompleteIndex = (index + buttons.length) % buttons.length;
+
+  buttons.forEach((button, buttonIndex) => {
+    const isActive = buttonIndex === activeAutocompleteIndex;
+    button.classList.toggle("active", isActive);
+    button.setAttribute("aria-selected", String(isActive));
+  });
+
+  const activeButton = buttons[activeAutocompleteIndex];
+  searchInput.setAttribute("aria-activedescendant", activeButton.id);
+  activeButton.scrollIntoView({ block: "nearest" });
+}
+
+async function selectAutocompleteCard(card) {
+  hideAutocompleteSuggestions();
+  searchInput.value = `${card[1]} ${card[3]}`;
+  searchStatus.textContent = "Loading card details...";
+  searchResults.replaceChildren();
+
+  try {
+    const apiQuery = `id:\"${card[0]}\"`;
+    const response = await fetch(
+      `/api/cards?q=${encodeURIComponent(apiQuery)}`
+    );
+
+    if (!response.ok) {
+      throw new Error(`API error ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const cards = payload.data || [];
+
+    if (cards.length === 0) {
+      searchStatus.textContent = "That printing could not be loaded.";
+      return;
+    }
+
+    searchStatus.textContent = "1 card found";
+    displayCards(cards.slice(0, 1));
+
+    if (!activeTradeSide) {
+      openCardDetail(cards[0]);
+    }
+  } catch (error) {
+    console.error(error);
+    searchStatus.textContent =
+      "Card details could not load. Tap Search to retry.";
+  }
+}
+
+function renderAutocompleteSuggestions(cards) {
+  autocompleteMatches = cards;
+  activeAutocompleteIndex = -1;
+  searchSuggestions.replaceChildren();
+
+  if (cards.length === 0) {
+    searchSuggestions.hidden = true;
+    searchInput.setAttribute("aria-expanded", "false");
+    return;
+  }
+
+  cards.forEach((card, index) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = `card-suggestion-${index}`;
+    button.className = "search-suggestion";
+    button.setAttribute("role", "option");
+    button.setAttribute("aria-selected", "false");
+
+    const image = document.createElement("img");
+    image.src = card[6];
+    image.alt = "";
+    image.loading = "lazy";
+
+    const details = document.createElement("span");
+    details.className = "search-suggestion-details";
+
+    const name = document.createElement("strong");
+    name.textContent = card[1];
+
+    const printing = document.createElement("span");
+    printing.textContent = `${card[2]} · ${card[3]}/${card[4] || "?"}`;
+
+    details.append(name, printing);
+    button.append(image, details);
+    button.addEventListener("click", () => selectAutocompleteCard(card));
+    searchSuggestions.appendChild(button);
+  });
+
+  searchSuggestions.hidden = false;
+  searchInput.setAttribute("aria-expanded", "true");
+}
+
+async function updateAutocompleteSuggestions(query) {
+  const requestedQuery = query.trim();
+
+  if (parseAutocompleteQuery(requestedQuery).nameQuery.length < 2) {
+    hideAutocompleteSuggestions();
+    return;
+  }
+
+  await loadAutocompleteIndex();
+
+  if (searchInput.value.trim() !== requestedQuery) {
+    return;
+  }
+
+  renderAutocompleteSuggestions(findAutocompleteMatches(requestedQuery));
+}
+
+searchInput.setAttribute("role", "combobox");
+searchInput.setAttribute("aria-autocomplete", "list");
+searchInput.setAttribute("aria-controls", "searchSuggestions");
+searchInput.setAttribute("aria-expanded", "false");
+
+searchInput.addEventListener("focus", () => {
+  loadAutocompleteIndex();
+
+  if (searchInput.value.trim().length >= 2) {
+    updateAutocompleteSuggestions(searchInput.value);
+  }
+});
+
+searchInput.addEventListener("input", () => {
+  clearTimeout(autocompleteTimer);
+  autocompleteTimer = setTimeout(
+    () => updateAutocompleteSuggestions(searchInput.value),
+    70
+  );
+});
+
+searchInput.addEventListener("keydown", (event) => {
+  if (searchSuggestions.hidden) {
+    return;
+  }
+
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    setActiveAutocompleteIndex(activeAutocompleteIndex + 1);
+  } else if (event.key === "ArrowUp") {
+    event.preventDefault();
+    setActiveAutocompleteIndex(activeAutocompleteIndex - 1);
+  } else if (event.key === "Enter" && activeAutocompleteIndex >= 0) {
+    event.preventDefault();
+    selectAutocompleteCard(autocompleteMatches[activeAutocompleteIndex]);
+  } else if (event.key === "Escape") {
+    hideAutocompleteSuggestions();
+  }
+});
+
+document.addEventListener("click", (event) => {
+  if (!searchForm.contains(event.target)) {
+    hideAutocompleteSuggestions();
+  }
+});
+
 closeDetailButton.addEventListener("click", () => {
   resetCompletedSearch();
 });
 
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
+  hideAutocompleteSuggestions();
 
   const query = searchInput.value.trim();
 
