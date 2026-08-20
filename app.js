@@ -688,8 +688,26 @@ gradeSelect.addEventListener("change", () => {
 });
 
 updateCardTypeFields();
-closeDetailButton.addEventListener("click", () => {
+
+function resetCompletedSearch() {
   cardDetailPanel.classList.add("hidden");
+
+  searchInput.value = "";
+  searchStatus.textContent = "";
+  searchResults.replaceChildren();
+
+  currentSearchCards = [];
+  selectedCardData = null;
+  selectedCardMarketPrice = 0;
+
+  priceVariantSelect.replaceChildren();
+  priceVariantSelect.disabled = true;
+  selectedCardImage.removeAttribute("src");
+  selectedCardImage.alt = "Selected card";
+}
+
+closeDetailButton.addEventListener("click", () => {
+  resetCompletedSearch();
 });
 
 searchForm.addEventListener("submit", async (event) => {
