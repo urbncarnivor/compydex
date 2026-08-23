@@ -2183,7 +2183,7 @@ function recordMarketSnapshot(card, variant) {
 
   const historyStore = getMarketHistoryStore();
   const historyKey = `${card.id}:${variant.key}`;
-  const snapshotDate = normalizeMarketDate(card.tcgplayer?.updatedAt);
+  const snapshotDate = normalizeMarketDate();
   const savedPoints = Array.isArray(historyStore[historyKey])
     ? historyStore[historyKey]
     : [];
@@ -2208,6 +2208,44 @@ function recordMarketSnapshot(card, variant) {
   }
 
   return updatedPoints;
+}
+
+async function syncSharedMarketHistory(card, variant) {
+  if (!card?.id || !variant?.key || !(variant.marketPrice > 0)) {
+    return [];
+  }
+
+  const response = await fetch("/api/market-history", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      cardId: card.id,
+      variantKey: variant.key,
+      cardName: card.name,
+      setName: card.set?.name || "",
+      cardNumber: card.number || "",
+      finishLabel: variant.label,
+      marketPrice: variant.marketPrice,
+      sourceUpdatedAt: card.tcgplayer?.updatedAt || null,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Shared market history returned ${response.status}`);
+  }
+
+  const payload = await response.json();
+  return Array.isArray(payload?.points)
+    ? payload.points.filter(
+        (point) =>
+          point?.date &&
+          typeof point?.value === "number" &&
+          Number.isFinite(point.value)
+      )
+    : [];
 }
 
 function createSvgElement(name, attributes = {}) {
@@ -2365,14 +2403,14 @@ function renderMarketHistory(points, card, variant) {
 function renderUnavailableMarketHistory() {
   marketHistoryTitle.textContent = "USD Market Over Time";
   marketHistorySummary.textContent =
-    "Waiting for a second real TCGplayer USD snapshot.";
+    "Building shared USD history for this finish.";
   marketHistoryChange.textContent = "Building";
   marketHistoryChange.className = "market-history-change";
   marketHistoryChart.replaceChildren();
   marketHistoryChart.hidden = true;
   marketHistoryChart.parentElement.classList.add("is-unavailable");
   marketHistoryEmpty.textContent =
-    "The chart appears after the market price changes on another day.";
+    "The chart appears after CompyDex records this finish on a second day.";
   marketHistoryEmpty.hidden = false;
 }
 
@@ -2434,6 +2472,28 @@ function updateMarketAnalytics() {
   } else {
     renderUnavailableMarketHistory();
   }
+
+  const requestedCardId = selectedCardData.id;
+  const requestedVariantKey = variant.key;
+
+  syncSharedMarketHistory(selectedCardData, variant)
+    .then((sharedHistory) => {
+      const isStillSelected =
+        selectedCardData?.id === requestedCardId &&
+        selectedCardVariantKey === requestedVariantKey;
+
+      if (!isStillSelected || sharedHistory.length < 2) {
+        return;
+      }
+
+      renderMarketHistory(sharedHistory, selectedCardData, variant);
+    })
+    .catch((error) => {
+      console.info(
+        "Shared market history is not connected yet; using this device's history.",
+        error
+      );
+    });
 }
 
 const RECENT_CARDS_KEY = "compydexRecentCards";

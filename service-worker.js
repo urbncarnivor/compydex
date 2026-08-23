@@ -1,12 +1,12 @@
-const CACHE_VERSION = "compydex-v27.2";
+const CACHE_VERSION = "compydex-v28";
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const CARD_IMAGE_CACHE = `${CACHE_VERSION}-card-images`;
 
 const APP_SHELL = [
   "/",
   "/index.html",
-  "/styles.css?v=27.2",
-  "/app.js?v=27.2",
+  "/styles.css?v=28",
+  "/app.js?v=28",
   "/assets/data/card-index.json?v=25",
   "/manifest.json",
   "/offline.html",
