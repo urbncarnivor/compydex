@@ -17,7 +17,7 @@
 
   <title>CompyDex</title>
 
-  <link rel="stylesheet" href="styles.css?v=26">
+  <link rel="stylesheet" href="styles.css?v=27">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/compydex-cyber-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/compydex-cyber-apple-touch-180.png">
@@ -225,6 +225,71 @@
     </div>
   </div>
 
+  <section id="marketAnalytics" class="market-analytics" aria-labelledby="marketAnalyticsTitle">
+    <div class="market-analytics-heading">
+      <div>
+        <p class="market-analytics-eyebrow">Selected finish</p>
+        <h3 id="marketAnalyticsTitle">Market Analytics</h3>
+      </div>
+      <span id="marketUpdatedAt" class="market-updated-at">TCGplayer</span>
+    </div>
+
+    <div id="marketSnapshot" class="market-snapshot" aria-label="Current market snapshot">
+      <div>
+        <span>Low</span>
+        <strong id="marketLow">—</strong>
+      </div>
+      <div class="market-snapshot-primary">
+        <span>Market</span>
+        <strong id="marketSnapshotValue">—</strong>
+      </div>
+      <div>
+        <span>Mid</span>
+        <strong id="marketMid">—</strong>
+      </div>
+      <div>
+        <span>High</span>
+        <strong id="marketHigh">—</strong>
+      </div>
+    </div>
+
+    <div class="market-range" aria-label="Market position within the current low to high range">
+      <div class="market-range-track">
+        <span id="marketRangeMarker" class="market-range-marker"></span>
+      </div>
+      <div class="market-range-labels">
+        <span id="marketRangeLow">Low —</span>
+        <span id="marketRangeSpread">Spread —</span>
+        <span id="marketRangeHigh">High —</span>
+      </div>
+    </div>
+
+    <div class="market-history-heading">
+      <div>
+        <h4>Market Over Time</h4>
+        <p id="marketHistorySummary">CompyDex records real market snapshots as you view this card.</p>
+      </div>
+      <span id="marketHistoryChange" class="market-history-change">New</span>
+    </div>
+
+    <div class="market-history-chart-wrap">
+      <svg
+        id="marketHistoryChart"
+        class="market-history-chart"
+        viewBox="0 0 640 220"
+        role="img"
+        aria-labelledby="marketHistoryChartTitle marketHistoryChartDescription"
+        preserveAspectRatio="none"
+      >
+        <title id="marketHistoryChartTitle">TCGplayer market price history</title>
+        <desc id="marketHistoryChartDescription">Price history will build as CompyDex records daily market snapshots.</desc>
+      </svg>
+      <div id="marketHistoryEmpty" class="market-history-empty">
+        Tracking starts with this market snapshot.
+      </div>
+    </div>
+  </section>
+
 <button id="ebaySoldButton" type="button">
     View eBay Sold Listings
 </button>
@@ -273,6 +338,20 @@
     <strong id="offerAmount">$0.00</strong>
   </div>
 
+</section>
+
+<section id="recentPanel" class="recent-panel" aria-labelledby="recentTitle">
+  <div class="recent-heading">
+    <div>
+      <p class="calculator-eyebrow">Quick Return</p>
+      <h2 id="recentTitle">Recently Searched</h2>
+      <p>Tap a card to reopen the exact finish you viewed.</p>
+    </div>
+    <button id="clearRecentButton" class="recent-clear-button" type="button">
+      Clear
+    </button>
+  </div>
+  <div id="recentCards" class="recent-cards" aria-live="polite"></div>
 </section>
 
 <section id="calculatorPanel" class="calculator-panel is-collapsed" aria-labelledby="calculatorTitle">
@@ -501,7 +580,7 @@
 </div>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   
-  <script src="app.js?v=26"></script>
+  <script src="app.js?v=27"></script>
 
 </body>
 </html>

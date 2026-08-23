@@ -28,10 +28,26 @@ const marketPrice = document.getElementById("marketPrice");
 const conditionPrice = document.getElementById("conditionPrice");
 const marketPriceLabel = document.getElementById("marketPriceLabel");
 const conditionPriceLabel = document.getElementById("conditionPriceLabel");
+const marketAnalytics = document.getElementById("marketAnalytics");
+const marketUpdatedAt = document.getElementById("marketUpdatedAt");
+const marketLow = document.getElementById("marketLow");
+const marketSnapshotValue = document.getElementById("marketSnapshotValue");
+const marketMid = document.getElementById("marketMid");
+const marketHigh = document.getElementById("marketHigh");
+const marketRangeMarker = document.getElementById("marketRangeMarker");
+const marketRangeLow = document.getElementById("marketRangeLow");
+const marketRangeSpread = document.getElementById("marketRangeSpread");
+const marketRangeHigh = document.getElementById("marketRangeHigh");
+const marketHistorySummary = document.getElementById("marketHistorySummary");
+const marketHistoryChange = document.getElementById("marketHistoryChange");
+const marketHistoryChart = document.getElementById("marketHistoryChart");
+const marketHistoryChartDescription = document.getElementById("marketHistoryChartDescription");
+const marketHistoryEmpty = document.getElementById("marketHistoryEmpty");
 const finalCompInput = document.getElementById("finalCompInput");
 const percentageInput = document.getElementById("percentageInput");
 const offerAmount = document.getElementById("offerAmount");
 const recentCardsContainer = document.getElementById("recentCards");
+const clearRecentButton = document.getElementById("clearRecentButton");
 const ebaySoldButton = document.getElementById("ebaySoldButton");
 const tradeModeButton = document.getElementById("tradeModeButton");
 const tradePanel = document.getElementById("tradePanel");
@@ -1749,6 +1765,13 @@ function getCardPriceVariants(card) {
         key,
         label: PRICE_VARIANT_LABELS[key] || key,
         marketPrice,
+        low: typeof priceData?.low === "number" ? priceData.low : null,
+        mid: typeof priceData?.mid === "number" ? priceData.mid : null,
+        high: typeof priceData?.high === "number" ? priceData.high : null,
+        directLow:
+          typeof priceData?.directLow === "number"
+            ? priceData.directLow
+            : null,
       };
     })
     .filter(Boolean);
@@ -1924,6 +1947,8 @@ function selectPriceVariant(variantKey) {
   selectedCardMarketPrice = selectedVariant?.marketPrice || 0;
   updatePriceVariantTileSelection();
   updateCardTypeFields();
+  updateMarketAnalytics();
+  saveRecentCard(selectedCardData, selectedCardVariantKey);
 }
 
 function renderPriceVariantTiles(card, variants) {
@@ -1964,11 +1989,12 @@ function renderPriceVariantTiles(card, variants) {
   updatePriceVariantTileSelection();
 }
 
-function openCardDetail(card) {
+function openCardDetail(card, preferredVariantKey = "") {
   selectedCardData = card;
 
   const variants = getCardPriceVariants(card);
-  const defaultVariant = variants[0] || null;
+  const defaultVariant =
+    getCardVariant(card, preferredVariantKey) || variants[0] || null;
 
   selectedCardVariantKey = defaultVariant?.key || "";
   selectedCardMarketPrice = defaultVariant?.marketPrice || 0;
@@ -2052,6 +2078,8 @@ function openCardDetail(card) {
 
   updateCardTypeFields();
   updateConditionValue();
+  updateMarketAnalytics();
+  saveRecentCard(card, selectedCardVariantKey);
 
   cardDetailPanel.classList.remove("hidden");
 
@@ -2097,15 +2125,327 @@ function formatMoney(value) {
     currency: "USD"
   }).format(value);
 }
-const RECENT_CARDS_KEY = "compydexRecentCards";
-const MAX_RECENT_CARDS = 5;
 
-function saveRecentCard(card) {
+function formatOptionalMoney(value) {
+  return typeof value === "number" && Number.isFinite(value)
+    ? formatMoney(value)
+    : "—";
+}
+
+function normalizeMarketDate(value) {
+  const normalized = String(value || "")
+    .trim()
+    .replaceAll("/", "-");
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalized)) {
+    return normalized;
+  }
+
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatMarketDate(value, options = {}) {
+  const [year, month, day] = String(value || "").split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return "Unknown date";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: options.short ? "short" : "long",
+    day: "numeric",
+    year: options.includeYear ? "numeric" : undefined,
+  }).format(new Date(year, month - 1, day));
+}
+
+function getMarketHistoryStore() {
+  try {
+    const savedHistory = JSON.parse(
+      localStorage.getItem(PRICE_HISTORY_KEY) || "{}"
+    );
+
+    return savedHistory && typeof savedHistory === "object"
+      ? savedHistory
+      : {};
+  } catch (error) {
+    console.error("Could not load market history:", error);
+    return {};
+  }
+}
+
+function recordMarketSnapshot(card, variant) {
+  if (!card?.id || !variant?.key || !(variant.marketPrice > 0)) {
+    return [];
+  }
+
+  const historyStore = getMarketHistoryStore();
+  const historyKey = `${card.id}:${variant.key}`;
+  const snapshotDate = normalizeMarketDate(card.tcgplayer?.updatedAt);
+  const savedPoints = Array.isArray(historyStore[historyKey])
+    ? historyStore[historyKey]
+    : [];
+
+  const updatedPoints = [
+    ...savedPoints.filter((point) => point.date !== snapshotDate),
+    {
+      date: snapshotDate,
+      value: variant.marketPrice,
+    },
+  ]
+    .filter((point) => point?.date && Number.isFinite(point?.value))
+    .sort((first, second) => first.date.localeCompare(second.date))
+    .slice(-MAX_HISTORY_POINTS);
+
+  historyStore[historyKey] = updatedPoints;
+
+  try {
+    localStorage.setItem(PRICE_HISTORY_KEY, JSON.stringify(historyStore));
+  } catch (error) {
+    console.error("Could not save market history:", error);
+  }
+
+  return updatedPoints;
+}
+
+function createSvgElement(name, attributes = {}) {
+  const element = document.createElementNS(
+    "http://www.w3.org/2000/svg",
+    name
+  );
+
+  Object.entries(attributes).forEach(([key, value]) => {
+    element.setAttribute(key, String(value));
+  });
+
+  return element;
+}
+
+function renderMarketHistory(points, card, variant) {
+  marketHistoryChart.replaceChildren();
+
+  const title = createSvgElement("title");
+  title.textContent = `${card.name} ${variant.label} TCGplayer market history`;
+
+  const description = createSvgElement("desc");
+  description.textContent =
+    points.length > 1
+      ? `${points.length} recorded daily prices from ${formatMarketDate(points[0].date)} to ${formatMarketDate(points.at(-1).date)}.`
+      : "One market snapshot is recorded. More points will appear after future price updates.";
+
+  marketHistoryChart.append(title, description);
+
+  if (points.length === 0) {
+    marketHistoryEmpty.hidden = false;
+    marketHistorySummary.textContent = "Market history is unavailable for this finish.";
+    marketHistoryChange.textContent = "—";
+    marketHistoryChange.className = "market-history-change";
+    return;
+  }
+
+  const width = 640;
+  const height = 220;
+  const paddingX = 34;
+  const paddingY = 28;
+  const values = points.map((point) => point.value);
+  let minimum = Math.min(...values);
+  let maximum = Math.max(...values);
+
+  if (minimum === maximum) {
+    const cushion = Math.max(minimum * 0.08, 0.25);
+    minimum = Math.max(0, minimum - cushion);
+    maximum += cushion;
+  }
+
+  const xForIndex = (index) =>
+    points.length === 1
+      ? width / 2
+      : paddingX +
+        (index / (points.length - 1)) * (width - paddingX * 2);
+  const yForValue = (value) =>
+    height - paddingY -
+    ((value - minimum) / (maximum - minimum)) *
+      (height - paddingY * 2);
+
+  for (let lineIndex = 0; lineIndex < 4; lineIndex += 1) {
+    const y = paddingY +
+      (lineIndex / 3) * (height - paddingY * 2);
+    marketHistoryChart.appendChild(
+      createSvgElement("line", {
+        x1: paddingX,
+        x2: width - paddingX,
+        y1: y,
+        y2: y,
+        class: "market-chart-grid-line",
+      })
+    );
+  }
+
+  const coordinates = points.map((point, index) => ({
+    x: xForIndex(index),
+    y: yForValue(point.value),
+    ...point,
+  }));
+
+  if (coordinates.length > 1) {
+    const areaPath = [
+      `M ${coordinates[0].x} ${height - paddingY}`,
+      ...coordinates.map((point) => `L ${point.x} ${point.y}`),
+      `L ${coordinates.at(-1).x} ${height - paddingY}`,
+      "Z",
+    ].join(" ");
+    const linePath = coordinates
+      .map((point, index) =>
+        `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`
+      )
+      .join(" ");
+
+    marketHistoryChart.append(
+      createSvgElement("path", {
+        d: areaPath,
+        class: "market-chart-area",
+      }),
+      createSvgElement("path", {
+        d: linePath,
+        class: "market-chart-line",
+      })
+    );
+  }
+
+  coordinates.forEach((point) => {
+    const pointGroup = createSvgElement("g");
+    const pointTitle = createSvgElement("title");
+    pointTitle.textContent =
+      `${formatMarketDate(point.date, { includeYear: true })}: ${formatMoney(point.value)}`;
+    pointGroup.append(
+      createSvgElement("circle", {
+        cx: point.x,
+        cy: point.y,
+        r: coordinates.length === 1 ? 7 : 5,
+        class: "market-chart-point",
+      }),
+      pointTitle
+    );
+    marketHistoryChart.appendChild(pointGroup);
+  });
+
+  marketHistoryEmpty.hidden = points.length > 1;
+  marketHistorySummary.textContent =
+    points.length === 1
+      ? `1 daily snapshot · started ${formatMarketDate(points[0].date)}`
+      : `${points.length} daily snapshots · ${formatMarketDate(points[0].date, { short: true })}–${formatMarketDate(points.at(-1).date, { short: true })}`;
+
+  const firstValue = points[0].value;
+  const lastValue = points.at(-1).value;
+  const percentageChange =
+    firstValue > 0
+      ? ((lastValue - firstValue) / firstValue) * 100
+      : 0;
+
+  marketHistoryChange.className = "market-history-change";
+
+  if (points.length === 1) {
+    marketHistoryChange.textContent = "New";
+  } else if (Math.abs(percentageChange) < 0.05) {
+    marketHistoryChange.textContent = "0.0%";
+  } else {
+    marketHistoryChange.textContent =
+      `${percentageChange > 0 ? "+" : ""}${percentageChange.toFixed(1)}%`;
+    marketHistoryChange.classList.add(
+      percentageChange > 0 ? "is-up" : "is-down"
+    );
+  }
+}
+
+function updateMarketAnalytics() {
+  if (!selectedCardData) {
+    marketAnalytics.hidden = true;
+    return;
+  }
+
+  const variant = getCardVariant(
+    selectedCardData,
+    selectedCardVariantKey
+  );
+
+  if (!variant) {
+    marketAnalytics.hidden = true;
+    return;
+  }
+
+  marketAnalytics.hidden = false;
+  marketLow.textContent = formatOptionalMoney(variant.low);
+  marketSnapshotValue.textContent = formatOptionalMoney(variant.marketPrice);
+  marketMid.textContent = formatOptionalMoney(variant.mid);
+  marketHigh.textContent = formatOptionalMoney(variant.high);
+
+  const sourceDate = normalizeMarketDate(
+    selectedCardData.tcgplayer?.updatedAt
+  );
+  marketUpdatedAt.textContent =
+    `TCGplayer · ${formatMarketDate(sourceDate, { short: true })}`;
+
+  const hasRange =
+    typeof variant.low === "number" &&
+    typeof variant.high === "number" &&
+    variant.high > variant.low;
+
+  const markerPosition = hasRange
+    ? Math.max(
+        0,
+        Math.min(
+          100,
+          ((variant.marketPrice - variant.low) /
+            (variant.high - variant.low)) * 100
+        )
+      )
+    : 50;
+
+  marketRangeMarker.style.left = `${markerPosition}%`;
+  marketRangeLow.textContent = `Low ${formatOptionalMoney(variant.low)}`;
+  marketRangeHigh.textContent = `High ${formatOptionalMoney(variant.high)}`;
+  marketRangeSpread.textContent = hasRange
+    ? `${formatMoney(variant.high - variant.low)} span`
+    : "Range unavailable";
+
+  const history = recordMarketSnapshot(selectedCardData, variant);
+  renderMarketHistory(history, selectedCardData, variant);
+}
+
+const RECENT_CARDS_KEY = "compydexRecentCards";
+const PRICE_HISTORY_KEY = "compydexMarketHistoryV1";
+const MAX_RECENT_CARDS = 6;
+const MAX_HISTORY_POINTS = 90;
+
+function normalizeRecentEntry(entry) {
+  if (entry?.card?.id) {
+    return entry;
+  }
+
+  if (entry?.id) {
+    return {
+      card: entry,
+      variantKey: getDefaultCardVariant(entry)?.key || "",
+      viewedAt: 0,
+    };
+  }
+
+  return null;
+}
+
+function saveRecentCard(card, variantKey = "") {
+  if (!card?.id) {
+    return;
+  }
+
   const recentCards = getRecentCards();
 
   const updatedCards = [
-    card,
-    ...recentCards.filter((recentCard) => recentCard.id !== card.id),
+    {
+      card,
+      variantKey: getCardVariant(card, variantKey)?.key || "",
+      viewedAt: Date.now(),
+    },
+    ...recentCards.filter((entry) => entry.card.id !== card.id),
   ].slice(0, MAX_RECENT_CARDS);
 
   localStorage.setItem(
@@ -2118,9 +2458,11 @@ function saveRecentCard(card) {
 
 function getRecentCards() {
   try {
-    return JSON.parse(
+    const savedCards = JSON.parse(
       localStorage.getItem(RECENT_CARDS_KEY)
     ) || [];
+
+    return savedCards.map(normalizeRecentEntry).filter(Boolean);
   } catch (error) {
     console.error("Could not load recent cards:", error);
     return [];
@@ -2135,15 +2477,20 @@ function displayRecentCards() {
   const recentCards = getRecentCards();
 
   if (recentCards.length === 0) {
-    recentCardsContainer.innerHTML = "<p>Nothing yet...</p>";
+    recentCardsContainer.innerHTML =
+      '<p class="recent-empty">Your last six card lookups will appear here.</p>';
+    clearRecentButton.hidden = true;
     return;
   }
 
   recentCardsContainer.innerHTML = "";
+  clearRecentButton.hidden = false;
 
-  recentCards.forEach((card) => {
+  recentCards.forEach((entry) => {
+    const { card, variantKey } = entry;
     const cardElement = document.createElement("button");
-    const price = getCardMarketPrice(card);
+    const selectedVariant = getCardVariant(card, variantKey);
+    const price = selectedVariant?.marketPrice || 0;
 
     cardElement.className = "recent-card-item";
 
@@ -2157,6 +2504,7 @@ function displayRecentCards() {
       <div>
         <strong>${card.name}</strong>
         <span>${card.set.name} · ${card.number}</span>
+        <span>${selectedVariant?.label || "Market"}</span>
         <span>
           ${
             price > 0
@@ -2168,12 +2516,17 @@ function displayRecentCards() {
     `;
 
     cardElement.addEventListener("click", () => {
-      openCardDetail(card);
+      openCardDetail(card, variantKey);
     });
 
     recentCardsContainer.appendChild(cardElement);
   });
 }
+
+clearRecentButton.addEventListener("click", () => {
+  localStorage.removeItem(RECENT_CARDS_KEY);
+  displayRecentCards();
+});
 
 displayRecentCards();
 function addCardToTrade(card, variantKey = "") {
