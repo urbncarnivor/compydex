@@ -17,7 +17,7 @@ const selectedCardSet = document.getElementById("selectedCardSet");
 const selectedCardNumber = document.getElementById("selectedCardNumber");
 const selectedCardRarity = document.getElementById("selectedCardRarity");
 const priceVariantField = document.getElementById("priceVariantField");
-const priceVariantSelect = document.getElementById("priceVariantSelect");
+const priceVariantTiles = document.getElementById("priceVariantTiles");
 
 const conditionSelect = document.getElementById("conditionSelect");
 const cardTypeSelect = document.getElementById("cardTypeSelect");
@@ -93,6 +93,7 @@ const dismissUpdateButton = document.getElementById("dismissUpdateButton");
 
 let selectedCardMarketPrice = 0;
 let selectedCardData = null;
+let selectedCardVariantKey = "";
 let activeTradeSide = null;
 let currentSearchCards = [];
 let cardAutocompleteIndex = [];
@@ -706,9 +707,9 @@ function resetCompletedSearch() {
   currentSearchCards = [];
   selectedCardData = null;
   selectedCardMarketPrice = 0;
+  selectedCardVariantKey = "";
 
-  priceVariantSelect.replaceChildren();
-  priceVariantSelect.disabled = true;
+  priceVariantTiles.replaceChildren();
   selectedCardImage.removeAttribute("src");
   selectedCardImage.alt = "Selected card";
 }
@@ -1899,19 +1900,79 @@ function getRarityDisplay(rarity) {
   };
 }
 
+function updatePriceVariantTileSelection() {
+  priceVariantTiles
+    .querySelectorAll(".price-variant-tile")
+    .forEach((tile) => {
+      const isSelected = tile.dataset.variantKey === selectedCardVariantKey;
+      tile.classList.toggle("selected", isSelected);
+      tile.setAttribute("aria-checked", String(isSelected));
+    });
+}
+
+function selectPriceVariant(variantKey) {
+  if (!selectedCardData) {
+    return;
+  }
+
+  const selectedVariant = getCardVariant(
+    selectedCardData,
+    variantKey
+  );
+
+  selectedCardVariantKey = selectedVariant?.key || "";
+  selectedCardMarketPrice = selectedVariant?.marketPrice || 0;
+  updatePriceVariantTileSelection();
+  updateCardTypeFields();
+}
+
+function renderPriceVariantTiles(card, variants) {
+  priceVariantTiles.replaceChildren();
+  priceVariantField.classList.toggle("hidden", variants.length <= 1);
+
+  if (variants.length <= 1) {
+    return;
+  }
+
+  variants.forEach((variant) => {
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.className = "price-variant-tile";
+    tile.dataset.variantKey = variant.key;
+    tile.setAttribute("role", "radio");
+
+    const image = document.createElement("img");
+    image.src = card.images.small || card.images.large;
+    image.alt = `${card.name} ${variant.label}`;
+    image.loading = "lazy";
+
+    const label = document.createElement("strong");
+    label.textContent = variant.label;
+
+    const price = document.createElement("span");
+    price.textContent = formatMoney(variant.marketPrice);
+
+    const selectedIndicator = document.createElement("small");
+    selectedIndicator.className = "variant-selected-indicator";
+    selectedIndicator.textContent = "Selected";
+
+    tile.append(image, label, price, selectedIndicator);
+    tile.addEventListener("click", () => selectPriceVariant(variant.key));
+    priceVariantTiles.appendChild(tile);
+  });
+
+  updatePriceVariantTileSelection();
+}
+
 function openCardDetail(card) {
   selectedCardData = card;
 
   const variants = getCardPriceVariants(card);
   const defaultVariant = variants[0] || null;
 
+  selectedCardVariantKey = defaultVariant?.key || "";
   selectedCardMarketPrice = defaultVariant?.marketPrice || 0;
-  priceVariantSelect.innerHTML = buildVariantOptions(
-    variants,
-    defaultVariant?.key || ""
-  );
-  priceVariantSelect.disabled = variants.length === 0;
-  priceVariantField.classList.toggle("hidden", variants.length === 0);
+  renderPriceVariantTiles(card, variants);
 
   selectedCardImage.src =
     card.images.large || card.images.small;
@@ -1942,7 +2003,7 @@ function openCardDetail(card) {
     const grade = gradeSelect.value;
     const selectedVariant = getCardVariant(
       card,
-      priceVariantSelect.value
+      selectedCardVariantKey
     );
 
     let searchText =
@@ -2000,19 +2061,6 @@ function openCardDetail(card) {
   });
 }
 
-priceVariantSelect.addEventListener("change", () => {
-  if (!selectedCardData) {
-    return;
-  }
-
-  const selectedVariant = getCardVariant(
-    selectedCardData,
-    priceVariantSelect.value
-  );
-
-  selectedCardMarketPrice = selectedVariant?.marketPrice || 0;
-  updateCardTypeFields();
-});
 function updateConditionValue() {
   const conditionMultiplier =
     Number(conditionSelect.value) || 1;

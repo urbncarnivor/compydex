@@ -542,7 +542,8 @@ footer {
   margin-top: 22px;
 }
 
-.detail-field label {
+.detail-field label,
+.detail-field-label {
   display: block;
   margin-bottom: 9px;
   color: #d1d5db;
@@ -564,6 +565,85 @@ footer {
 .detail-field input:focus {
   outline: 2px solid #7c3aed;
   border-color: transparent;
+}
+
+.price-variant-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(125px, 1fr));
+  gap: 12px;
+}
+
+.price-variant-tile {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 7px;
+  min-height: 0;
+  margin: 0;
+  padding: 12px 10px 11px;
+  overflow: hidden;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 13px;
+  background: rgba(15, 23, 42, 0.88);
+  color: #f8fafc;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+
+.price-variant-tile img {
+  width: 86px;
+  height: 120px;
+  border-radius: 7px;
+  object-fit: cover;
+  background: #111827;
+}
+
+.price-variant-tile strong {
+  min-height: 34px;
+  display: grid;
+  place-items: center;
+  color: #ffffff;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.price-variant-tile > span {
+  color: #c4b5fd;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.price-variant-tile.selected {
+  border-color: rgba(57, 255, 136, 0.9);
+  background: linear-gradient(
+    145deg,
+    rgba(57, 255, 136, 0.13),
+    rgba(124, 58, 237, 0.2)
+  );
+  box-shadow:
+    0 0 0 1px rgba(57, 255, 136, 0.18),
+    0 0 20px rgba(57, 255, 136, 0.2),
+    0 10px 22px rgba(0, 0, 0, 0.24);
+}
+
+.price-variant-tile.selected > span {
+  color: var(--compydex-green);
+}
+
+.variant-selected-indicator {
+  display: none;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--compydex-green);
+  color: #07130d;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.price-variant-tile.selected .variant-selected-indicator {
+  display: block;
 }
 
 .price-grid {

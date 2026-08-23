@@ -17,7 +17,7 @@
 
   <title>CompyDex</title>
 
-  <link rel="stylesheet" href="styles.css?v=25">
+  <link rel="stylesheet" href="styles.css?v=26">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/compydex-cyber-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/compydex-cyber-apple-touch-180.png">
@@ -166,8 +166,15 @@
   </div>
 
   <div class="detail-field" id="priceVariantField">
-    <label for="priceVariantSelect">Printing / Finish</label>
-    <select id="priceVariantSelect"></select>
+    <span id="priceVariantLabel" class="detail-field-label">
+      Printing / Finish
+    </span>
+    <div
+      id="priceVariantTiles"
+      class="price-variant-tiles"
+      role="radiogroup"
+      aria-labelledby="priceVariantLabel"
+    ></div>
   </div>
 
   <div class="detail-field">
@@ -494,7 +501,7 @@
 </div>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   
-  <script src="app.js?v=25"></script>
+  <script src="app.js?v=26"></script>
 
 </body>
 </html>
