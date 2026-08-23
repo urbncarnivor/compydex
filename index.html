@@ -17,7 +17,7 @@
 
   <title>CompyDex</title>
 
-  <link rel="stylesheet" href="styles.css?v=27">
+  <link rel="stylesheet" href="styles.css?v=27.1">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="192x192" href="/assets/icons/compydex-cyber-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/assets/icons/compydex-cyber-apple-touch-180.png">
@@ -266,7 +266,7 @@
 
     <div class="market-history-heading">
       <div>
-        <h4>Market Over Time</h4>
+        <h4 id="marketHistoryTitle">Market Over Time</h4>
         <p id="marketHistorySummary">CompyDex records real market snapshots as you view this card.</p>
       </div>
       <span id="marketHistoryChange" class="market-history-change">New</span>
@@ -347,9 +347,21 @@
       <h2 id="recentTitle">Recently Searched</h2>
       <p>Tap a card to reopen the exact finish you viewed.</p>
     </div>
-    <button id="clearRecentButton" class="recent-clear-button" type="button">
-      Clear
-    </button>
+    <div class="recent-heading-actions">
+      <button id="clearRecentButton" class="recent-clear-button" type="button">
+        Clear
+      </button>
+      <button
+        id="recentToggleButton"
+        class="recent-toggle-button"
+        type="button"
+        aria-label="Minimize recently searched"
+        aria-expanded="true"
+        aria-controls="recentCards"
+      >
+        <span class="recent-toggle-icon" aria-hidden="true">−</span>
+      </button>
+    </div>
   </div>
   <div id="recentCards" class="recent-cards" aria-live="polite"></div>
 </section>
@@ -580,7 +592,7 @@
 </div>
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   
-  <script src="app.js?v=27"></script>
+  <script src="app.js?v=27.1"></script>
 
 </body>
 </html>

@@ -38,6 +38,7 @@ const marketRangeMarker = document.getElementById("marketRangeMarker");
 const marketRangeLow = document.getElementById("marketRangeLow");
 const marketRangeSpread = document.getElementById("marketRangeSpread");
 const marketRangeHigh = document.getElementById("marketRangeHigh");
+const marketHistoryTitle = document.getElementById("marketHistoryTitle");
 const marketHistorySummary = document.getElementById("marketHistorySummary");
 const marketHistoryChange = document.getElementById("marketHistoryChange");
 const marketHistoryChart = document.getElementById("marketHistoryChart");
@@ -47,7 +48,9 @@ const finalCompInput = document.getElementById("finalCompInput");
 const percentageInput = document.getElementById("percentageInput");
 const offerAmount = document.getElementById("offerAmount");
 const recentCardsContainer = document.getElementById("recentCards");
+const recentPanel = document.getElementById("recentPanel");
 const clearRecentButton = document.getElementById("clearRecentButton");
+const recentToggleButton = document.getElementById("recentToggleButton");
 const ebaySoldButton = document.getElementById("ebaySoldButton");
 const tradeModeButton = document.getElementById("tradeModeButton");
 const tradePanel = document.getElementById("tradePanel");
@@ -2220,17 +2223,61 @@ function createSvgElement(name, attributes = {}) {
   return element;
 }
 
-function renderMarketHistory(points, card, variant) {
+function getCardmarketMomentum(card, variantKey) {
+  const prices = card?.cardmarket?.prices;
+
+  if (!prices) {
+    return [];
+  }
+
+  const isReverse = variantKey === "reverseHolofoil";
+  const values = isReverse
+    ? [
+        ["30D", prices.reverseHoloAvg30],
+        ["7D", prices.reverseHoloAvg7],
+        ["1D", prices.reverseHoloAvg1],
+      ]
+    : [
+        ["30D", prices.avg30],
+        ["7D", prices.avg7],
+        ["1D", prices.avg1],
+      ];
+
+  return values
+    .filter(([, value]) => typeof value === "number" && value > 0)
+    .map(([label, value]) => ({
+      date: label,
+      label,
+      value,
+    }));
+}
+
+function formatSeriesMoney(value, currency = "USD") {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency,
+  }).format(value);
+}
+
+function renderMarketHistory(points, card, variant, options = {}) {
+  const isMomentum = options.type === "momentum";
+  const seriesCurrency = isMomentum ? "EUR" : "USD";
   marketHistoryChart.replaceChildren();
+  marketHistoryChart.hidden = false;
+  marketHistoryChart.parentElement.classList.remove("is-unavailable");
+  marketHistoryTitle.textContent = isMomentum
+    ? "Sales Momentum"
+    : "Market Over Time";
 
   const title = createSvgElement("title");
-  title.textContent = `${card.name} ${variant.label} TCGplayer market history`;
+  title.textContent = isMomentum
+    ? `${card.name} Cardmarket rolling sales averages`
+    : `${card.name} ${variant.label} TCGplayer market history`;
 
   const description = createSvgElement("desc");
-  description.textContent =
-    points.length > 1
-      ? `${points.length} recorded daily prices from ${formatMarketDate(points[0].date)} to ${formatMarketDate(points.at(-1).date)}.`
-      : "One market snapshot is recorded. More points will appear after future price updates.";
+  description.textContent = isMomentum
+    ? "Cardmarket rolling 30-day, 7-day, and 1-day average sale prices in euros."
+    : `${points.length} recorded daily TCGplayer market prices from ${formatMarketDate(points[0].date)} to ${formatMarketDate(points.at(-1).date)}.`;
 
   marketHistoryChart.append(title, description);
 
@@ -2314,8 +2361,9 @@ function renderMarketHistory(points, card, variant) {
   coordinates.forEach((point) => {
     const pointGroup = createSvgElement("g");
     const pointTitle = createSvgElement("title");
-    pointTitle.textContent =
-      `${formatMarketDate(point.date, { includeYear: true })}: ${formatMoney(point.value)}`;
+    pointTitle.textContent = isMomentum
+      ? `${point.label} average: ${formatSeriesMoney(point.value, seriesCurrency)}`
+      : `${formatMarketDate(point.date, { includeYear: true })}: ${formatMoney(point.value)}`;
     pointGroup.append(
       createSvgElement("circle", {
         cx: point.x,
@@ -2326,13 +2374,23 @@ function renderMarketHistory(points, card, variant) {
       pointTitle
     );
     marketHistoryChart.appendChild(pointGroup);
+
+    const axisLabel = createSvgElement("text", {
+      x: point.x,
+      y: height - 7,
+      class: "market-chart-axis-label",
+      "text-anchor": "middle",
+    });
+    axisLabel.textContent = isMomentum
+      ? point.label
+      : formatMarketDate(point.date, { short: true });
+    marketHistoryChart.appendChild(axisLabel);
   });
 
-  marketHistoryEmpty.hidden = points.length > 1;
-  marketHistorySummary.textContent =
-    points.length === 1
-      ? `1 daily snapshot · started ${formatMarketDate(points[0].date)}`
-      : `${points.length} daily snapshots · ${formatMarketDate(points[0].date, { short: true })}–${formatMarketDate(points.at(-1).date, { short: true })}`;
+  marketHistoryEmpty.hidden = true;
+  marketHistorySummary.textContent = isMomentum
+    ? `Rolling averages · Cardmarket EUR · ${options.updatedAt || "current"}`
+    : `${points.length} daily snapshots · ${formatMarketDate(points[0].date, { short: true })}–${formatMarketDate(points.at(-1).date, { short: true })}`;
 
   const firstValue = points[0].value;
   const lastValue = points.at(-1).value;
@@ -2343,9 +2401,7 @@ function renderMarketHistory(points, card, variant) {
 
   marketHistoryChange.className = "market-history-change";
 
-  if (points.length === 1) {
-    marketHistoryChange.textContent = "New";
-  } else if (Math.abs(percentageChange) < 0.05) {
+  if (Math.abs(percentageChange) < 0.05) {
     marketHistoryChange.textContent = "0.0%";
   } else {
     marketHistoryChange.textContent =
@@ -2354,6 +2410,20 @@ function renderMarketHistory(points, card, variant) {
       percentageChange > 0 ? "is-up" : "is-down"
     );
   }
+}
+
+function renderUnavailableMarketHistory() {
+  marketHistoryTitle.textContent = "Market Over Time";
+  marketHistorySummary.textContent =
+    "Historical pricing is not available for this card yet.";
+  marketHistoryChange.textContent = "—";
+  marketHistoryChange.className = "market-history-change";
+  marketHistoryChart.replaceChildren();
+  marketHistoryChart.hidden = true;
+  marketHistoryChart.parentElement.classList.add("is-unavailable");
+  marketHistoryEmpty.textContent =
+    "CompyDex will begin charting this finish after its next TCGplayer price update.";
+  marketHistoryEmpty.hidden = false;
 }
 
 function updateMarketAnalytics() {
@@ -2408,7 +2478,24 @@ function updateMarketAnalytics() {
     : "Range unavailable";
 
   const history = recordMarketSnapshot(selectedCardData, variant);
-  renderMarketHistory(history, selectedCardData, variant);
+  const momentum = getCardmarketMomentum(
+    selectedCardData,
+    selectedCardVariantKey
+  );
+
+  if (history.length >= 2) {
+    renderMarketHistory(history, selectedCardData, variant);
+  } else if (momentum.length >= 2) {
+    const cardmarketDate = normalizeMarketDate(
+      selectedCardData.cardmarket?.updatedAt
+    );
+    renderMarketHistory(momentum, selectedCardData, variant, {
+      type: "momentum",
+      updatedAt: formatMarketDate(cardmarketDate, { short: true }),
+    });
+  } else {
+    renderUnavailableMarketHistory();
+  }
 }
 
 const RECENT_CARDS_KEY = "compydexRecentCards";
@@ -2526,6 +2613,29 @@ function displayRecentCards() {
 clearRecentButton.addEventListener("click", () => {
   localStorage.removeItem(RECENT_CARDS_KEY);
   displayRecentCards();
+});
+
+function setRecentCollapsed(isCollapsed) {
+  recentPanel.classList.toggle("is-collapsed", isCollapsed);
+  recentToggleButton.setAttribute(
+    "aria-expanded",
+    String(!isCollapsed)
+  );
+  recentToggleButton.setAttribute(
+    "aria-label",
+    isCollapsed
+      ? "Expand recently searched"
+      : "Minimize recently searched"
+  );
+  recentToggleButton.querySelector(
+    ".recent-toggle-icon"
+  ).textContent = isCollapsed ? "+" : "−";
+}
+
+recentToggleButton.addEventListener("click", () => {
+  setRecentCollapsed(
+    !recentPanel.classList.contains("is-collapsed")
+  );
 });
 
 displayRecentCards();

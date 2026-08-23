@@ -858,6 +858,10 @@ footer {
   height: 142px;
 }
 
+.market-history-chart[hidden] {
+  display: none;
+}
+
 .market-chart-grid-line {
   stroke: rgba(148, 163, 184, 0.13);
   stroke-width: 1;
@@ -883,6 +887,12 @@ footer {
   vector-effect: non-scaling-stroke;
 }
 
+.market-chart-axis-label {
+  fill: #94a3b8;
+  font-size: 15px;
+  font-weight: 800;
+}
+
 .market-history-empty {
   position: absolute;
   left: 50%;
@@ -900,6 +910,21 @@ footer {
 
 .market-history-empty[hidden] {
   display: none;
+}
+
+.market-history-chart-wrap.is-unavailable {
+  min-height: 0;
+  padding: 16px;
+}
+
+.market-history-chart-wrap.is-unavailable .market-history-empty {
+  position: static;
+  width: auto;
+  max-width: none;
+  padding: 0;
+  background: transparent;
+  line-height: 1.45;
+  transform: none;
 }
 
 .money-input,
@@ -988,6 +1013,7 @@ footer {
 }
 #ebaySoldButton {
   width: 100%;
+  margin-top: 20px;
   background: linear-gradient(135deg, #0064d2, #3b82f6);
   color: white;
   border: none;
@@ -1528,6 +1554,13 @@ footer {
   gap: 14px;
 }
 
+.recent-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
 .recent-heading h2 {
   margin: 2px 0 3px;
   font-size: 24px;
@@ -1539,7 +1572,8 @@ footer {
   font-size: 12px;
 }
 
-.recent-clear-button {
+.recent-clear-button,
+.recent-toggle-button {
   width: auto;
   min-height: 42px;
   padding: 9px 13px;
@@ -1547,6 +1581,32 @@ footer {
   border-color: rgba(148, 163, 184, 0.32);
   border-radius: 10px;
   font-size: 14px;
+}
+
+.recent-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  min-width: 42px;
+  padding: 0;
+  background: rgba(109, 40, 217, 0.72);
+  border-color: rgba(167, 139, 250, 0.62);
+}
+
+.recent-toggle-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.recent-panel.is-collapsed .recent-heading {
+  align-items: center;
+}
+
+.recent-panel.is-collapsed .recent-heading > div > p:last-child,
+.recent-panel.is-collapsed .recent-clear-button,
+.recent-panel.is-collapsed .recent-cards {
+  display: none;
 }
 
 .recent-cards {
