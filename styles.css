@@ -1697,7 +1697,7 @@ footer {
 
 .calculator-panel {
   width: min(100%, 620px);
-  margin: 30px auto 0;
+  margin: 18px auto 0;
   padding: 18px;
   background: rgba(31, 41, 55, 0.96);
   border: 1px solid rgba(139, 92, 246, 0.38);

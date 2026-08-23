@@ -2223,61 +2223,17 @@ function createSvgElement(name, attributes = {}) {
   return element;
 }
 
-function getCardmarketMomentum(card, variantKey) {
-  const prices = card?.cardmarket?.prices;
-
-  if (!prices) {
-    return [];
-  }
-
-  const isReverse = variantKey === "reverseHolofoil";
-  const values = isReverse
-    ? [
-        ["30D", prices.reverseHoloAvg30],
-        ["7D", prices.reverseHoloAvg7],
-        ["1D", prices.reverseHoloAvg1],
-      ]
-    : [
-        ["30D", prices.avg30],
-        ["7D", prices.avg7],
-        ["1D", prices.avg1],
-      ];
-
-  return values
-    .filter(([, value]) => typeof value === "number" && value > 0)
-    .map(([label, value]) => ({
-      date: label,
-      label,
-      value,
-    }));
-}
-
-function formatSeriesMoney(value, currency = "USD") {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-  }).format(value);
-}
-
-function renderMarketHistory(points, card, variant, options = {}) {
-  const isMomentum = options.type === "momentum";
-  const seriesCurrency = isMomentum ? "EUR" : "USD";
+function renderMarketHistory(points, card, variant) {
   marketHistoryChart.replaceChildren();
   marketHistoryChart.hidden = false;
   marketHistoryChart.parentElement.classList.remove("is-unavailable");
-  marketHistoryTitle.textContent = isMomentum
-    ? "Sales Momentum"
-    : "Market Over Time";
+  marketHistoryTitle.textContent = "USD Market Over Time";
 
   const title = createSvgElement("title");
-  title.textContent = isMomentum
-    ? `${card.name} Cardmarket rolling sales averages`
-    : `${card.name} ${variant.label} TCGplayer market history`;
+  title.textContent = `${card.name} ${variant.label} TCGplayer market history in US dollars`;
 
   const description = createSvgElement("desc");
-  description.textContent = isMomentum
-    ? "Cardmarket rolling 30-day, 7-day, and 1-day average sale prices in euros."
-    : `${points.length} recorded daily TCGplayer market prices from ${formatMarketDate(points[0].date)} to ${formatMarketDate(points.at(-1).date)}.`;
+  description.textContent = `${points.length} recorded daily TCGplayer market prices in US dollars from ${formatMarketDate(points[0].date)} to ${formatMarketDate(points.at(-1).date)}.`;
 
   marketHistoryChart.append(title, description);
 
@@ -2361,9 +2317,7 @@ function renderMarketHistory(points, card, variant, options = {}) {
   coordinates.forEach((point) => {
     const pointGroup = createSvgElement("g");
     const pointTitle = createSvgElement("title");
-    pointTitle.textContent = isMomentum
-      ? `${point.label} average: ${formatSeriesMoney(point.value, seriesCurrency)}`
-      : `${formatMarketDate(point.date, { includeYear: true })}: ${formatMoney(point.value)}`;
+    pointTitle.textContent = `${formatMarketDate(point.date, { includeYear: true })}: ${formatMoney(point.value)}`;
     pointGroup.append(
       createSvgElement("circle", {
         cx: point.x,
@@ -2381,16 +2335,12 @@ function renderMarketHistory(points, card, variant, options = {}) {
       class: "market-chart-axis-label",
       "text-anchor": "middle",
     });
-    axisLabel.textContent = isMomentum
-      ? point.label
-      : formatMarketDate(point.date, { short: true });
+    axisLabel.textContent = formatMarketDate(point.date, { short: true });
     marketHistoryChart.appendChild(axisLabel);
   });
 
   marketHistoryEmpty.hidden = true;
-  marketHistorySummary.textContent = isMomentum
-    ? `Rolling averages · Cardmarket EUR · ${options.updatedAt || "current"}`
-    : `${points.length} daily snapshots · ${formatMarketDate(points[0].date, { short: true })}–${formatMarketDate(points.at(-1).date, { short: true })}`;
+  marketHistorySummary.textContent = `${points.length} real TCGplayer USD snapshots · ${formatMarketDate(points[0].date, { short: true })}–${formatMarketDate(points.at(-1).date, { short: true })}`;
 
   const firstValue = points[0].value;
   const lastValue = points.at(-1).value;
@@ -2413,16 +2363,16 @@ function renderMarketHistory(points, card, variant, options = {}) {
 }
 
 function renderUnavailableMarketHistory() {
-  marketHistoryTitle.textContent = "Market Over Time";
+  marketHistoryTitle.textContent = "USD Market Over Time";
   marketHistorySummary.textContent =
-    "Historical pricing is not available for this card yet.";
-  marketHistoryChange.textContent = "—";
+    "Waiting for a second real TCGplayer USD snapshot.";
+  marketHistoryChange.textContent = "Building";
   marketHistoryChange.className = "market-history-change";
   marketHistoryChart.replaceChildren();
   marketHistoryChart.hidden = true;
   marketHistoryChart.parentElement.classList.add("is-unavailable");
   marketHistoryEmpty.textContent =
-    "CompyDex will begin charting this finish after its next TCGplayer price update.";
+    "The chart appears after the market price changes on another day.";
   marketHistoryEmpty.hidden = false;
 }
 
@@ -2478,21 +2428,9 @@ function updateMarketAnalytics() {
     : "Range unavailable";
 
   const history = recordMarketSnapshot(selectedCardData, variant);
-  const momentum = getCardmarketMomentum(
-    selectedCardData,
-    selectedCardVariantKey
-  );
 
   if (history.length >= 2) {
     renderMarketHistory(history, selectedCardData, variant);
-  } else if (momentum.length >= 2) {
-    const cardmarketDate = normalizeMarketDate(
-      selectedCardData.cardmarket?.updatedAt
-    );
-    renderMarketHistory(momentum, selectedCardData, variant, {
-      type: "momentum",
-      updatedAt: formatMarketDate(cardmarketDate, { short: true }),
-    });
   } else {
     renderUnavailableMarketHistory();
   }
